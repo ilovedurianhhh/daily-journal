@@ -36,7 +36,10 @@ export default function JournalSection({ entryId, initialText }: Props) {
     return () => { newUrls.forEach(url => URL.revokeObjectURL(url)) }
   }, [images])
 
-  const save = useCallback(async (value: string) => {
+  const textRef = useRef(initialText)
+
+  const flushSave = useCallback(async (value: string) => {
+    if (timerRef.current) clearTimeout(timerRef.current)
     await db.entries.update(entryId, { journal: value, updatedAt: new Date() })
     setSaved(true)
     setTimeout(() => setSaved(false), 1500)
@@ -44,13 +47,47 @@ export default function JournalSection({ entryId, initialText }: Props) {
 
   const onChange = (value: string) => {
     setText(value)
+    textRef.current = value
     if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => save(value), 800)
+    timerRef.current = setTimeout(() => flushSave(value), 800)
   }
 
+  // Save on unmount (navigation away)
   useEffect(() => {
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [])
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+        if (textRef.current !== initialText) {
+          // Synchronous save on unmount isn't possible with IndexedDB
+          // but we can fire-and-forget
+          db.entries.update(entryId, { journal: textRef.current, updatedAt: new Date() })
+        }
+      }
+    }
+  }, [entryId, initialText])
+
+  // Save on page close / tab switch
+  useEffect(() => {
+    const onBeforeUnload = () => {
+      if (textRef.current !== initialText) {
+        // Use sendBeacon-like approach — IndexedDB writes are async but
+        // the browser will wait for pending transactions on page hide
+        db.entries.update(entryId, { journal: textRef.current, updatedAt: new Date() })
+      }
+    }
+    const onVisibility = () => {
+      if (document.hidden && textRef.current !== initialText) {
+        if (timerRef.current) clearTimeout(timerRef.current)
+        db.entries.update(entryId, { journal: textRef.current, updatedAt: new Date() })
+      }
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [entryId, initialText])
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
