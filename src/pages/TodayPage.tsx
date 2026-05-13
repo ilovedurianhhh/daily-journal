@@ -3,10 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { db, type Entry } from '../db'
 import MoodPicker from '../components/MoodPicker'
-import ActivitySection from '../components/ActivitySection'
-import WorkoutSection from '../components/WorkoutSection'
 import JournalSection from '../components/JournalSection'
-import ImageGallery from '../components/ImageGallery'
+import ExpenseSection from '../components/ExpenseSection'
 
 function formatDate(date: Date): string {
   const y = date.getFullYear()
@@ -89,7 +87,6 @@ export default function TodayPage() {
 
   return (
     <div className="max-w-lg mx-auto px-5 pt-8">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button onClick={() => changeDay(-1)} className="p-2 -ml-2 text-[#b8a99a] hover:text-[#8b7e74] transition-colors">
           <ChevronLeft size={22} />
@@ -115,10 +112,8 @@ export default function TodayPage() {
       {entry && (
         <div className="space-y-4">
           <MoodPicker value={entry.mood} onChange={updateMood} />
-          <ActivitySection entryId={entry.id!} />
-          <WorkoutSection entryId={entry.id!} />
           <JournalSection entryId={entry.id!} initialText={entry.journal} />
-          <ImageGallery entryId={entry.id!} />
+          <ExpenseSection date={currentDate} />
         </div>
       )}
     </div>

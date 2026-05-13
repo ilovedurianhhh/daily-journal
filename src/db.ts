@@ -31,10 +31,45 @@ export interface Workout {
   createdAt: Date;
 }
 
+// New models
+
+export interface ExerciseSet {
+  weightKg?: number;
+  reps?: number;
+  durationMinutes?: number;
+  distanceKm?: number;
+}
+
+export interface Exercise {
+  id?: number;
+  date: string;
+  type: 'strength' | 'cardio';
+  exerciseName: string;
+  sets: ExerciseSet[];
+  notes: string;
+  createdAt: Date;
+}
+
+export interface ExerciseImage {
+  id?: number;
+  exerciseId: number;
+  data: Blob;
+  createdAt: Date;
+}
+
 export interface JournalImage {
   id?: number;
   entryId: number;
   data: Blob;
+  createdAt: Date;
+}
+
+export interface Expense {
+  id?: number;
+  date: string;
+  category: 'food' | 'transport' | 'shopping' | 'entertainment' | 'home' | 'other';
+  amount: number;
+  note: string;
   createdAt: Date;
 }
 
@@ -43,6 +78,9 @@ class JournalDB extends Dexie {
   activities!: Table<Activity>;
   workouts!: Table<Workout>;
   images!: Table<JournalImage>;
+  exercises!: Table<Exercise>;
+  exerciseImages!: Table<ExerciseImage>;
+  expenses!: Table<Expense>;
 
   constructor() {
     super('JournalDB');
@@ -56,6 +94,15 @@ class JournalDB extends Dexie {
       activities: '++id, entryId',
       workouts: '++id, entryId',
       images: '++id, entryId',
+    });
+    this.version(3).stores({
+      entries: '++id, &date',
+      activities: '++id, entryId',
+      workouts: '++id, entryId',
+      images: '++id, entryId',
+      exercises: '++id, date',
+      exerciseImages: '++id, exerciseId',
+      expenses: '++id, date',
     });
   }
 }
