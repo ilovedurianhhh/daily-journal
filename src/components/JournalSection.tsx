@@ -32,18 +32,18 @@ export default function JournalSection({ entryId, initialText }: Props) {
   }, [])
 
   return (
-    <section className="mb-6">
+    <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wide">日记</h2>
-        {saved && <span className="text-xs text-green-400">已保存</span>}
+        <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">日记</h3>
+        {saved && <span className="text-xs text-[#6db37a] transition-opacity">已保存 ✓</span>}
       </div>
       <textarea
         value={text}
         onChange={e => onChange(e.target.value)}
-        placeholder="今天发生了什么？有什么想记录的..."
+        placeholder="今天发生了什么？写点什么..."
         rows={6}
-        className="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 outline-none resize-none"
+        className="w-full bg-transparent text-[15px] text-[#3d3535] placeholder-[#d4cbc2] outline-none resize-none font-serif leading-relaxed"
       />
-    </section>
+    </div>
   )
 }

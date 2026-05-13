@@ -6,7 +6,7 @@ import StatsPage from './pages/StatsPage'
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-20">
+    <div className="min-h-screen bg-[#faf8f5] text-[#3d3535] pb-24">
       <Routes>
         <Route path="/" element={<TodayPage />} />
         <Route path="/history" element={<HistoryPage />} />

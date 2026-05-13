@@ -57,23 +57,28 @@ export default function WorkoutSection({ entryId }: Props) {
   const typeEntries = Object.entries(types)
 
   return (
-    <section className="mb-6">
+    <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wide">健身日记</h2>
-        <button onClick={() => setShowForm(!showForm)} className="text-indigo-400 p-1">
-          <Plus size={20} />
+        <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">健身日记</h3>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className={`p-1.5 rounded-lg transition-all ${showForm ? 'bg-[#f8ede8] text-[#c97d6b] rotate-45' : 'text-[#b8a99a] hover:text-[#8b7e74]'}`}
+        >
+          <Plus size={18} strokeWidth={2} />
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-slate-800 rounded-xl p-4 mb-3 space-y-3">
-          <div className="flex gap-2 flex-wrap">
+        <div className="bg-[#faf8f5] rounded-xl p-4 mb-3 space-y-3 border border-[#efe8e0]">
+          <div className="flex gap-1.5 flex-wrap">
             {typeEntries.map(([key, { emoji, label }]) => (
               <button
                 key={key}
                 onClick={() => setType(key)}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  type === key ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-300'
+                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                  type === key
+                    ? 'bg-white text-[#c97d6b] shadow-sm border border-[#efe8e0]'
+                    : 'text-[#8b7e74] hover:bg-white/60'
                 }`}
               >
                 {emoji} {label}
@@ -85,59 +90,62 @@ export default function WorkoutSection({ entryId }: Props) {
             placeholder="动作名称"
             value={exerciseName}
             onChange={e => setExerciseName(e.target.value)}
-            className="w-full bg-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none"
+            className="w-full bg-white rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30 transition-colors"
           />
           {isStrength ? (
             <div className="grid grid-cols-3 gap-2">
               <input type="number" placeholder="组数" value={sets} onChange={e => setSets(e.target.value)}
-                className="bg-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none" />
+                className="bg-white rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30 transition-colors" />
               <input type="number" placeholder="次数" value={reps} onChange={e => setReps(e.target.value)}
-                className="bg-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none" />
+                className="bg-white rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30 transition-colors" />
               <input type="number" placeholder="重量(kg)" value={weight} onChange={e => setWeight(e.target.value)}
-                className="bg-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none" />
+                className="bg-white rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30 transition-colors" />
             </div>
           ) : (
             <input type="number" placeholder="时长（分钟）" value={duration} onChange={e => setDuration(e.target.value)}
-              className="w-full bg-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none" />
+              className="w-full bg-white rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30 transition-colors" />
           )}
           <input type="text" placeholder="备注（可选）" value={notes} onChange={e => setNotes(e.target.value)}
-            className="w-full bg-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none" />
+            className="w-full bg-white rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30 transition-colors" />
           <button
             onClick={addWorkout}
             disabled={!exerciseName.trim()}
-            className="w-full py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+            className="w-full py-2.5 bg-[#c97d6b] text-white rounded-lg text-sm font-medium disabled:opacity-40 transition-opacity"
           >
-            添加
+            添加训练
           </button>
         </div>
       )}
 
       {workouts.length === 0 && !showForm && (
-        <p className="text-slate-600 text-sm py-4 text-center">暂无记录，点击 + 添加</p>
+        <p className="text-sm text-[#d4cbc2] py-3 text-center font-serif italic">记录今天的训练</p>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {workouts.map(w => {
           const t = types[w.type]
           return (
-            <div key={w.id} className="bg-slate-800/50 rounded-lg px-3 py-2">
+            <div key={w.id} className="py-2 px-2 -mx-2 rounded-lg hover:bg-[#faf8f5] group transition-colors">
               <div className="flex items-center gap-2">
                 <span>{t.emoji}</span>
-                <span className="text-sm font-medium text-slate-200">{w.exerciseName}</span>
-                <span className="text-xs text-slate-500">{t.label}</span>
-                <button onClick={() => deleteWorkout(w.id!)} className="ml-auto text-slate-600 hover:text-red-400">
+                <span className="text-sm font-medium text-[#3d3535]">{w.exerciseName}</span>
+                <span className="text-xs text-[#b8a99a] bg-[#f5f0eb] px-1.5 py-0.5 rounded">{t.label}</span>
+                <button
+                  onClick={() => deleteWorkout(w.id!)}
+                  className="ml-auto opacity-0 group-hover:opacity-100 text-[#d4cbc2] hover:text-[#c97d6b] transition-all"
+                >
                   <Trash2 size={14} />
                 </button>
               </div>
-              <div className="flex gap-3 mt-1 text-xs text-slate-400">
-                {w.sets && w.reps && <span>{w.sets}组 × {w.reps}次{w.weightKg ? ` @ ${w.weightKg}kg` : ''}</span>}
+              <div className="flex gap-3 mt-1 text-xs text-[#8b7e74]">
+                {w.sets && w.reps && <span>{w.sets}组 × {w.reps}次{w.weightKg ? ` · ${w.weightKg}kg` : ''}</span>}
                 {w.durationMinutes && <span>{w.durationMinutes}分钟</span>}
-                {w.notes && <span className="text-slate-500">📝 {w.notes}</span>}
+                {w.notes && <span className="text-[#b8a99a]">📝 {w.notes}</span>}
               </div>
             </div>
           )
         })}
       </div>
-    </section>
+    </div>
   )
 }

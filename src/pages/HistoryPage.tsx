@@ -4,11 +4,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { db, type Entry } from '../db'
 
 const MOOD_COLORS: Record<number, string> = {
-  5: 'bg-green-400',
-  4: 'bg-green-300',
-  3: 'bg-yellow-400',
-  2: 'bg-orange-400',
-  1: 'bg-red-400',
+  5: 'bg-[#6db37a]',
+  4: 'bg-[#a3c9a8]',
+  3: 'bg-[#e8c76a]',
+  2: 'bg-[#e09e6e]',
+  1: 'bg-[#c97d6b]',
 }
 
 const DAY_HEADERS = ['一', '二', '三', '四', '五', '六', '日']
@@ -53,52 +53,56 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-6">
-      <div className="flex items-center justify-between mb-6">
-        <button onClick={prevMonth} className="p-2 text-slate-400 hover:text-slate-200">
-          <ChevronLeft size={24} />
+    <div className="max-w-lg mx-auto px-5 pt-8">
+      <div className="flex items-center justify-between mb-8">
+        <button onClick={prevMonth} className="p-2 -ml-2 text-[#b8a99a] hover:text-[#8b7e74] transition-colors">
+          <ChevronLeft size={22} />
         </button>
-        <h1 className="text-lg font-medium text-slate-200">
+        <h1 className="text-xl font-bold text-[#3d3535] font-serif">
           {year}年{month}月
         </h1>
-        <button onClick={nextMonth} className="p-2 text-slate-400 hover:text-slate-200">
-          <ChevronRight size={24} />
+        <button onClick={nextMonth} className="p-2 -mr-2 text-[#b8a99a] hover:text-[#8b7e74] transition-colors">
+          <ChevronRight size={22} />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {DAY_HEADERS.map(h => (
-          <div key={h} className="text-center text-xs text-slate-500 py-1">{h}</div>
-        ))}
-      </div>
+      <div className="card p-5">
+        <div className="grid grid-cols-7 gap-1 mb-3">
+          {DAY_HEADERS.map(h => (
+            <div key={h} className="text-center text-xs text-[#b8a99a] font-medium py-1">{h}</div>
+          ))}
+        </div>
 
-      <div className="grid grid-cols-7 gap-1">
-        {cells.map((day, i) => {
-          if (day === null) return <div key={`empty-${i}`} />
-          const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-          const entry = entryMap.get(dateStr)
-          const isToday =
-            now.getFullYear() === year &&
-            now.getMonth() + 1 === month &&
-            now.getDate() === day
+        <div className="grid grid-cols-7 gap-1.5">
+          {cells.map((day, i) => {
+            if (day === null) return <div key={`empty-${i}`} />
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+            const entry = entryMap.get(dateStr)
+            const isToday =
+              now.getFullYear() === year &&
+              now.getMonth() + 1 === month &&
+              now.getDate() === day
 
-          return (
-            <button
-              key={day}
-              onClick={() => goToDay(day)}
-              className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-colors hover:bg-slate-800 ${
-                isToday ? 'ring-1 ring-indigo-400' : ''
-              }`}
-            >
-              <span className="text-slate-300">{day}</span>
-              {entry?.mood ? (
-                <div className={`w-2 h-2 rounded-full mt-0.5 ${MOOD_COLORS[entry.mood]}`} />
-              ) : (
-                <div className="w-2 h-2 mt-0.5" />
-              )}
-            </button>
-          )
-        })}
+            return (
+              <button
+                key={day}
+                onClick={() => goToDay(day)}
+                className={`aspect-square rounded-xl flex flex-col items-center justify-center text-sm transition-all hover:bg-[#faf8f5] ${
+                  isToday ? 'ring-2 ring-[#c97d6b]/30' : ''
+                } ${entry?.mood ? 'bg-[#faf8f5]' : ''}`}
+              >
+                <span className={`text-sm ${isToday ? 'text-[#c97d6b] font-semibold' : 'text-[#3d3535]'}`}>
+                  {day}
+                </span>
+                {entry?.mood ? (
+                  <div className={`w-1.5 h-1.5 rounded-full mt-1 ${MOOD_COLORS[entry.mood]}`} />
+                ) : (
+                  <div className="w-1.5 h-1.5 mt-1" />
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

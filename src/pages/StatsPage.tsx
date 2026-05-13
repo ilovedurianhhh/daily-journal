@@ -17,18 +17,24 @@ const MOOD_LABELS: Record<number, string> = {
 }
 
 const CAT_LABELS: Record<string, string> = {
-  work: '💼 工作', study: '📚 学习', exercise: '🏃 运动',
-  leisure: '🎮 休闲', social: '👥 社交', other: '📌 其他',
+  work: '工作', study: '学习', exercise: '运动',
+  leisure: '休闲', social: '社交', other: '其他',
 }
 
-const PIE_COLORS = ['#818cf8', '#34d399', '#fbbf24', '#f472b6', '#38bdf8', '#a78bfa']
+const CAT_EMOJIS: Record<string, string> = {
+  work: '💼', study: '📚', exercise: '🏃',
+  leisure: '🎮', social: '👥', other: '📌',
+}
+
+const PIE_COLORS = ['#c97d6b', '#6db37a', '#e8c76a', '#d4a76a', '#a89bb8', '#8b7e74']
 
 export default function StatsPage() {
   const [moodData, setMoodData] = useState<{ date: string; mood: number; label: string }[]>([])
-  const [activityCounts, setActivityCounts] = useState<{ name: string; value: number }[]>([])
+  const [activityCounts, setActivityCounts] = useState<{ name: string; value: number; emoji: string }[]>([])
   const [workoutStats, setWorkoutStats] = useState({
     total: 0, thisWeek: 0, topExercise: '-',
   })
+  const [streak, setStreak] = useState(0)
 
   useEffect(() => {
     (async () => {
@@ -53,6 +59,21 @@ export default function StatsPage() {
       }
       setMoodData(moodArr)
 
+      // Streak: count consecutive days (backwards from today) with mood > 0
+      let s = 0
+      const check = new Date(now)
+      while (true) {
+        const ds = formatDate(check)
+        const e = moodMap.get(ds)
+        if (e && e > 0) {
+          s++
+          check.setDate(check.getDate() - 1)
+        } else {
+          break
+        }
+      }
+      setStreak(s)
+
       // Activity counts
       const allActs: Activity[] = await db.activities.toArray()
       const counts: Record<string, number> = {}
@@ -60,7 +81,11 @@ export default function StatsPage() {
         counts[a.category] = (counts[a.category] || 0) + 1
       }
       setActivityCounts(
-        Object.entries(counts).map(([k, v]) => ({ name: CAT_LABELS[k] || k, value: v }))
+        Object.entries(counts).map(([k, v]) => ({
+          name: CAT_LABELS[k] || k,
+          value: v,
+          emoji: CAT_EMOJIS[k] || '',
+        }))
       )
 
       // Workout stats
@@ -85,71 +110,96 @@ export default function StatsPage() {
   }, [])
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-6">
-      <h1 className="text-lg font-medium text-slate-200 mb-6">统计</h1>
+    <div className="max-w-lg mx-auto px-5 pt-8">
+      <h1 className="text-xl font-bold text-[#3d3535] mb-8 font-serif">统计</h1>
 
-      <section className="mb-6">
-        <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">心情趋势（近30天）</h2>
-        <div className="bg-slate-800 rounded-xl p-4">
-          <ResponsiveContainer width="100%" height={200}>
+      <div className="space-y-4">
+        {/* Streak */}
+        <div className="card p-5 text-center">
+          <p className="text-xs text-[#b8a99a] uppercase tracking-wider mb-2">连续记录</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-3xl">🔥</span>
+            <span className="text-4xl font-bold text-[#c97d6b] font-serif">{streak}</span>
+            <span className="text-lg text-[#8b7e74]">天</span>
+          </div>
+        </div>
+
+        {/* Mood trend */}
+        <div className="card p-5">
+          <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider mb-4">心情趋势 · 近30天</h3>
+          <ResponsiveContainer width="100%" height={180}>
             <LineChart data={moodData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 10 }} interval={4} />
-              <YAxis domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#efe8e0" />
+              <XAxis dataKey="date" tick={{ fill: '#b8a99a', fontSize: 10 }} interval={4} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fill: '#b8a99a', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '8px', color: '#f1f5f9' }}
+                contentStyle={{
+                  background: '#fff', border: '1px solid #efe8e0', borderRadius: '12px',
+                  color: '#3d3535', boxShadow: '0 2px 8px rgba(61,53,53,0.08)',
+                }}
                 formatter={(_value, _name, item) => {
                   const label = (item as { payload?: { label?: string } })?.payload?.label ?? ''
                   return [label, '心情'] as [string, string]
                 }}
               />
-              <Line type="monotone" dataKey="mood" stroke="#818cf8" strokeWidth={2} dot={{ r: 3, fill: '#818cf8' }} />
+              <Line type="monotone" dataKey="mood" stroke="#c97d6b" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#c97d6b' }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </section>
 
-      <section className="mb-6">
-        <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">活动分布</h2>
-        <div className="bg-slate-800 rounded-xl p-4">
+        {/* Activity breakdown */}
+        <div className="card p-5">
+          <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider mb-4">活动分布</h3>
           {activityCounts.length === 0 ? (
-            <p className="text-slate-500 text-sm text-center py-8">暂无数据</p>
+            <p className="text-sm text-[#d4cbc2] text-center py-8 font-serif italic">还没有活动记录</p>
           ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={activityCounts} dataKey="value" nameKey="name"
-                  cx="50%" cy="50%" outerRadius={80}
-                  label={({ name, value }) => `${name} ${value}`}
-                >
-                  {activityCounts.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="flex items-center gap-4">
+              <ResponsiveContainer width="55%" height={180}>
+                <PieChart>
+                  <Pie
+                    data={activityCounts} dataKey="value" nameKey="name"
+                    cx="50%" cy="50%" outerRadius={70} innerRadius={40}
+                  >
+                    {activityCounts.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-2">
+                {activityCounts.map((item, i) => (
+                  <div key={item.name} className="flex items-center gap-2 text-sm">
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i] }} />
+                    <span className="text-[#8b7e74]">{item.emoji}</span>
+                    <span className="text-[#3d3535] text-xs">{item.name}</span>
+                    <span className="ml-auto text-xs text-[#b8a99a]">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
-      </section>
 
-      <section className="mb-6">
-        <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">健身概览</h2>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-slate-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-indigo-400">{workoutStats.total}</div>
-            <div className="text-xs text-slate-500 mt-1">总计训练</div>
-          </div>
-          <div className="bg-slate-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-green-400">{workoutStats.thisWeek}</div>
-            <div className="text-xs text-slate-500 mt-1">本周训练</div>
-          </div>
-          <div className="bg-slate-800 rounded-xl p-4 text-center">
-            <div className="text-sm font-medium text-slate-200 truncate">{workoutStats.topExercise}</div>
-            <div className="text-xs text-slate-500 mt-1">最多训练</div>
+        {/* Workout summary */}
+        <div className="card p-5">
+          <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider mb-4">健身概览</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-[#faf8f5] rounded-xl p-3 text-center">
+              <div className="text-xl font-bold text-[#c97d6b] font-serif">{workoutStats.total}</div>
+              <div className="text-xs text-[#b8a99a] mt-1">总计训练</div>
+            </div>
+            <div className="bg-[#faf8f5] rounded-xl p-3 text-center">
+              <div className="text-xl font-bold text-[#6db37a] font-serif">{workoutStats.thisWeek}</div>
+              <div className="text-xs text-[#b8a99a] mt-1">本周训练</div>
+            </div>
+            <div className="bg-[#faf8f5] rounded-xl p-3 text-center">
+              <div className="text-xs font-medium text-[#3d3535] truncate">{workoutStats.topExercise}</div>
+              <div className="text-xs text-[#b8a99a] mt-1">最多训练</div>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   )
 }

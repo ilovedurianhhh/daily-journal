@@ -21,7 +21,18 @@ function parseDate(dateStr: string): Date {
 
 function formatDisplay(date: Date): string {
   const weekdays = ['日', '一', '二', '三', '四', '五', '六']
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 周${weekdays[date.getDay()]}`
+  return `${date.getMonth() + 1}月${date.getDate()}日 周${weekdays[date.getDay()]}`
+}
+
+function getGreeting(): { text: string; emoji: string } {
+  const h = new Date().getHours()
+  if (h < 6) return { text: '夜深了', emoji: '🌙' }
+  if (h < 9) return { text: '早上好', emoji: '☀️' }
+  if (h < 12) return { text: '上午好', emoji: '🌤️' }
+  if (h < 14) return { text: '中午好', emoji: '☀️' }
+  if (h < 18) return { text: '下午好', emoji: '🌿' }
+  if (h < 22) return { text: '晚上好', emoji: '🌆' }
+  return { text: '夜深了', emoji: '🌙' }
 }
 
 export default function TodayPage() {
@@ -30,6 +41,7 @@ export default function TodayPage() {
   const today = formatDate(new Date())
   const [currentDate, setCurrentDate] = useState(dateParam || today)
   const [entry, setEntry] = useState<Entry | null>(null)
+  const isToday = currentDate === today
 
   const loadEntry = useCallback(async (date: string) => {
     let e = await db.entries.where('date').equals(date).first()
@@ -72,29 +84,40 @@ export default function TodayPage() {
   }
 
   const dateObj = parseDate(currentDate)
+  const greeting = getGreeting()
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-6">
+    <div className="max-w-lg mx-auto px-5 pt-8">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => changeDay(-1)} className="p-2 text-slate-400 hover:text-slate-200">
-          <ChevronLeft size={24} />
+        <button onClick={() => changeDay(-1)} className="p-2 -ml-2 text-[#b8a99a] hover:text-[#8b7e74] transition-colors">
+          <ChevronLeft size={22} />
         </button>
-        <h1 className="text-lg font-medium text-slate-200">{formatDisplay(dateObj)}</h1>
+        <div className="text-center">
+          {isToday && (
+            <p className="text-sm text-[#b8a99a] mb-0.5">
+              {greeting.emoji} {greeting.text}
+            </p>
+          )}
+          <h1 className={`${isToday ? 'text-xl' : 'text-lg'} font-bold text-[#3d3535] tracking-tight font-serif`}>
+            {formatDisplay(dateObj)}
+          </h1>
+        </div>
         <button
           onClick={() => changeDay(1)}
-          className={`p-2 ${currentDate === today ? 'invisible' : ''} text-slate-400 hover:text-slate-200`}
+          className={`p-2 -mr-2 ${isToday ? 'invisible' : ''} text-[#b8a99a] hover:text-[#8b7e74] transition-colors`}
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={22} />
         </button>
       </div>
 
       {entry && (
-        <>
+        <div className="space-y-4">
           <MoodPicker value={entry.mood} onChange={updateMood} />
           <ActivitySection entryId={entry.id!} />
           <WorkoutSection entryId={entry.id!} />
           <JournalSection entryId={entry.id!} initialText={entry.journal} />
-        </>
+        </div>
       )}
     </div>
   )

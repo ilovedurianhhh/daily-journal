@@ -1,9 +1,9 @@
 const moods = [
-  { value: 5, emoji: '😄', label: '很好' },
-  { value: 4, emoji: '🙂', label: '不错' },
-  { value: 3, emoji: '😐', label: '一般' },
-  { value: 2, emoji: '😔', label: '不太好' },
-  { value: 1, emoji: '😢', label: '很差' },
+  { value: 5, emoji: '😄', label: '很好', desc: '开心充实' },
+  { value: 4, emoji: '🙂', label: '不错', desc: '平静愉快' },
+  { value: 3, emoji: '😐', label: '一般', desc: '平平淡淡' },
+  { value: 2, emoji: '😔', label: '不太好', desc: '有点低落' },
+  { value: 1, emoji: '😢', label: '很差', desc: '很难过' },
 ]
 
 interface Props {
@@ -12,27 +12,44 @@ interface Props {
 }
 
 export default function MoodPicker({ value, onChange }: Props) {
+  const currentMood = moods.find(m => m.value === value)
+
   return (
-    <section className="mb-6">
-      <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">今日心情</h2>
-      <div className="flex justify-between gap-1">
-        {moods.map(({ value: v, emoji, label }) => (
-          <button
-            key={v}
-            onClick={() => onChange(v)}
-            className={`flex flex-col items-center gap-1 flex-1 py-3 rounded-xl transition-colors ${
-              value === v
-                ? 'bg-indigo-500/20 ring-1 ring-indigo-400'
-                : 'bg-slate-800 hover:bg-slate-800/70'
-            }`}
-          >
-            <span className="text-2xl">{emoji}</span>
-            <span className={`text-xs ${value === v ? 'text-indigo-300' : 'text-slate-500'}`}>
-              {label}
-            </span>
-          </button>
-        ))}
+    <div className="card p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">今日心情</h3>
+        {currentMood && (
+          <span className="text-xs text-[#c97d6b] bg-[#f8ede8] px-2 py-0.5 rounded-full">
+            {currentMood.emoji} {currentMood.label}
+          </span>
+        )}
       </div>
-    </section>
+      <div className="flex justify-between">
+        {moods.map(({ value: v, emoji, label, desc }) => {
+          const selected = value === v
+          return (
+            <button
+              key={v}
+              onClick={() => onChange(v)}
+              className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-2xl transition-all min-w-0 flex-1 ${
+                selected
+                  ? 'bg-[#f8ede8] scale-110'
+                  : 'hover:bg-[#f5f0eb]'
+              }`}
+            >
+              <span className={`transition-all ${selected ? 'text-3xl' : 'text-2xl grayscale-[30%]'}`}>
+                {emoji}
+              </span>
+              <span className={`text-xs font-medium ${selected ? 'text-[#c97d6b]' : 'text-[#b8a99a]'}`}>
+                {label}
+              </span>
+              {selected && (
+                <span className="text-[10px] text-[#c97d6b]/70 -mt-0.5">{desc}</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
