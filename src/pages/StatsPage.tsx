@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import { db, type Exercise } from '../db'
+import ReportCard from '../components/ReportCard'
 
 function formatDate(date: Date): string {
   const y = date.getFullYear()
@@ -190,6 +191,8 @@ export default function StatsPage() {
             </div>
           </div>
         </div>
+
+        <ReportCard />
       </div>
     </div>
   )

@@ -3,7 +3,7 @@ import Dexie, { type Table } from 'dexie';
 export interface Entry {
   id?: number;
   date: string;
-  mood: number; // 0=none, 1-5
+  mood: number;
   journal: string;
   createdAt: Date;
   updatedAt: Date;
@@ -30,8 +30,6 @@ export interface Workout {
   notes: string;
   createdAt: Date;
 }
-
-// New models
 
 export interface ExerciseSet {
   weightKg?: number;
@@ -73,6 +71,17 @@ export interface Expense {
   createdAt: Date;
 }
 
+export interface Summary {
+  id?: number;
+  type: 'weekly' | 'monthly' | 'yearly';
+  periodStart: string;
+  periodEnd: string;
+  content: string;
+  moodAvg: number;
+  expenseTotal: number;
+  createdAt: Date;
+}
+
 class JournalDB extends Dexie {
   entries!: Table<Entry>;
   activities!: Table<Activity>;
@@ -81,20 +90,10 @@ class JournalDB extends Dexie {
   exercises!: Table<Exercise>;
   exerciseImages!: Table<ExerciseImage>;
   expenses!: Table<Expense>;
+  summaries!: Table<Summary>;
 
   constructor() {
     super('JournalDB');
-    this.version(1).stores({
-      entries: '++id, &date',
-      activities: '++id, entryId',
-      workouts: '++id, entryId',
-    });
-    this.version(2).stores({
-      entries: '++id, &date',
-      activities: '++id, entryId',
-      workouts: '++id, entryId',
-      images: '++id, entryId',
-    });
     this.version(3).stores({
       entries: '++id, &date',
       activities: '++id, entryId',
@@ -103,6 +102,16 @@ class JournalDB extends Dexie {
       exercises: '++id, date',
       exerciseImages: '++id, exerciseId',
       expenses: '++id, date',
+    });
+    this.version(4).stores({
+      entries: '++id, &date',
+      activities: '++id, entryId',
+      workouts: '++id, entryId',
+      images: '++id, entryId',
+      exercises: '++id, date',
+      exerciseImages: '++id, exerciseId',
+      expenses: '++id, date',
+      summaries: '++id, type, periodStart, periodEnd',
     });
   }
 }

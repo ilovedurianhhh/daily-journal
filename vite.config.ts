@@ -1,10 +1,16 @@
 import { defineConfig } from 'vite'
+import { readFileSync } from 'fs'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const DEEPSEEK_KEY = readFileSync('C:/Users/39037/Desktop/ds.txt', 'utf-8').trim()
+
 export default defineConfig({
   base: '/daily-journal/',
+  define: {
+    __DEEPSEEK_KEY__: JSON.stringify(DEEPSEEK_KEY),
+  },
   plugins: [
     react(),
     tailwindcss(),
