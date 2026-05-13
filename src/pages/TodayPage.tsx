@@ -65,6 +65,16 @@ export default function TodayPage() {
     loadEntry(currentDate)
   }, [currentDate, loadEntry])
 
+  // Auto-advance to today at midnight when viewing today
+  useEffect(() => {
+    if (dateParam) return
+    const now = new Date()
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+    const ms = midnight.getTime() - now.getTime()
+    const timer = setTimeout(() => setCurrentDate(formatDate(new Date())), ms + 1000)
+    return () => clearTimeout(timer)
+  }, [dateParam, currentDate])
+
   const changeDay = (delta: number) => {
     const d = parseDate(currentDate)
     d.setDate(d.getDate() + delta)
