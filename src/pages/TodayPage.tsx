@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock } from 'lucide-react'
 import { db, type Entry } from '../db'
 import MoodPicker from '../components/MoodPicker'
 import JournalSection from '../components/JournalSection'
@@ -34,12 +34,38 @@ function getGreeting(): { text: string; emoji: string } {
   return { text: '夜深了', emoji: '🌙' }
 }
 
+const MOOD_EMOJIS: Record<number, string> = { 5: '😄', 4: '🙂', 3: '😐', 2: '😔', 1: '😢' }
+
+function computeStreak(entries: Entry[]): number {
+  const moodMap = new Map(entries.filter(e => e.mood > 0).map(e => [e.date, true]))
+  let streak = 0
+  const check = new Date()
+  check.setDate(check.getDate() - 1) // start from yesterday
+  while (true) {
+    const ds = formatDate(check)
+    if (moodMap.has(ds)) {
+      streak++
+      check.setDate(check.getDate() - 1)
+    } else {
+      break
+    }
+  }
+  // Include today if mood is set
+  const todayStr = formatDate(new Date())
+  if (moodMap.has(todayStr)) streak++
+  return streak
+}
+
+interface PastEntry { year: number; mood: number; journal: string; date: string }
+
 export default function TodayPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const dateParam = searchParams.get('date')
   const today = formatDate(new Date())
   const [currentDate, setCurrentDate] = useState(dateParam || today)
   const [entry, setEntry] = useState<Entry | null>(null)
+  const [streak, setStreak] = useState(0)
+  const [pastEntries, setPastEntries] = useState<PastEntry[]>([])
   const isToday = currentDate === today
 
   const loadEntry = useCallback(async (date: string) => {
@@ -57,13 +83,44 @@ export default function TodayPage() {
     setEntry(e || null)
   }, [])
 
+  // Load streak
+  const loadStreak = useCallback(async () => {
+    const now = new Date()
+    const start = new Date(now)
+    start.setDate(start.getDate() - 366)
+    const entries = await db.entries
+      .where('date').between(formatDate(start), formatDate(now), true, true)
+      .toArray()
+    setStreak(computeStreak(entries))
+  }, [])
+
+  // Load "on this day" entries
+  const loadOnThisDay = useCallback(async (date: string) => {
+    const currentYear = new Date().getFullYear()
+    const [_, m, d] = date.split('-')
+    const results: PastEntry[] = []
+    for (let y = currentYear - 1; y >= currentYear - 10; y--) {
+      const ds = `${y}-${m}-${d}`
+      const e = await db.entries.where('date').equals(ds).first()
+      if (e && e.mood > 0) {
+        results.push({ year: y, mood: e.mood, journal: e.journal, date: ds })
+      }
+    }
+    setPastEntries(results)
+  }, [])
+
   useEffect(() => {
     setCurrentDate(dateParam || today)
   }, [dateParam, today])
 
   useEffect(() => {
     loadEntry(currentDate)
-  }, [currentDate, loadEntry])
+    loadOnThisDay(currentDate)
+  }, [currentDate, loadEntry, loadOnThisDay])
+
+  useEffect(() => {
+    if (isToday) loadStreak()
+  }, [isToday, loadStreak])
 
   // Auto-advance to today at midnight when viewing today
   useEffect(() => {
@@ -90,6 +147,7 @@ export default function TodayPage() {
     if (!entry?.id) return
     await db.entries.update(entry.id, { mood, updatedAt: new Date() })
     setEntry({ ...entry, mood, updatedAt: new Date() })
+    if (isToday) loadStreak()
   }
 
   const dateObj = parseDate(currentDate)
@@ -110,6 +168,11 @@ export default function TodayPage() {
           <h1 className={`${isToday ? 'text-xl' : 'text-lg'} font-bold text-[#3d3535] tracking-tight font-serif`}>
             {formatDisplay(dateObj)}
           </h1>
+          {isToday && streak > 0 && (
+            <p className="text-xs text-[#c97d6b] mt-1 font-medium">
+              🔥 连续记录 {streak} 天
+            </p>
+          )}
         </div>
         <button
           onClick={() => changeDay(1)}
@@ -124,6 +187,35 @@ export default function TodayPage() {
           <MoodPicker value={entry.mood} onChange={updateMood} />
           <JournalSection entryId={entry.id!} initialText={entry.journal} />
           <ExpenseSection date={currentDate} />
+
+          {/* On This Day */}
+          {isToday && pastEntries.length > 0 && (
+            <div className="card p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock size={14} className="text-[#b8a99a]" />
+                <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">那年今日</h3>
+              </div>
+              <div className="space-y-3">
+                {pastEntries.map(pe => (
+                  <button
+                    key={pe.year}
+                    onClick={() => setSearchParams({ date: pe.date })}
+                    className="w-full text-left block"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium text-[#c97d6b]">{pe.year}年</span>
+                      <span className="text-sm">{MOOD_EMOJIS[pe.mood] || ''}</span>
+                    </div>
+                    {pe.journal && (
+                      <p className="text-sm text-[#8b7e74] font-serif leading-relaxed line-clamp-2">
+                        {pe.journal.slice(0, 120)}
+                      </p>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

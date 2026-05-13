@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import { db, type Exercise } from '../db'
 import ReportCard from '../components/ReportCard'
+import { exportAll, importAll, downloadFile } from '../services/backup'
+import { Download, Upload } from 'lucide-react'
 
 function formatDate(date: Date): string {
   const y = date.getFullYear()
@@ -32,6 +34,7 @@ const CAT_EMOJIS: Record<string, string> = {
 const PIE_COLORS = ['#c97d6b', '#6db37a', '#e8c76a', '#d4a76a', '#a89bb8', '#8b7e74']
 
 export default function StatsPage() {
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [moodData, setMoodData] = useState<{ date: string; mood: number; label: string }[]>([])
   const [expenseCounts, setExpenseCounts] = useState<{ name: string; value: number; emoji: string }[]>([])
   const [expenseTotal, setExpenseTotal] = useState(0)
@@ -108,7 +111,51 @@ export default function StatsPage() {
 
   return (
     <div className="max-w-lg mx-auto px-5 pt-8">
-      <h1 className="text-xl font-bold text-[#3d3535] mb-8 font-serif">统计</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-xl font-bold text-[#3d3535] font-serif">统计</h1>
+        <div className="flex gap-1">
+          <button
+            onClick={async () => {
+              try {
+                const json = await exportAll()
+                downloadFile(json, `journal-backup-${formatDate(new Date())}.json`)
+              } catch (e) { alert('导出失败: ' + e) }
+            }}
+            className="p-2 text-[#b8a99a] hover:text-[#c97d6b] transition-colors"
+            title="导出备份"
+          >
+            <Download size={18} />
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 text-[#b8a99a] hover:text-[#c97d6b] transition-colors"
+            title="导入备份"
+          >
+            <Upload size={18} />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              if (!confirm('导入将覆盖当前所有数据，确定继续？')) {
+                if (fileInputRef.current) fileInputRef.current.value = ''
+                return
+              }
+              try {
+                const text = await file.text()
+                await importAll(text)
+                alert('导入成功！页面将刷新。')
+                window.location.reload()
+              } catch (e) { alert('导入失败: ' + e) }
+              if (fileInputRef.current) fileInputRef.current.value = ''
+            }}
+            className="hidden"
+          />
+        </div>
+      </div>
 
       <div className="space-y-4">
         {/* Streak */}
