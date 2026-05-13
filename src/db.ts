@@ -31,10 +31,18 @@ export interface Workout {
   createdAt: Date;
 }
 
+export interface JournalImage {
+  id?: number;
+  entryId: number;
+  data: Blob;
+  createdAt: Date;
+}
+
 class JournalDB extends Dexie {
   entries!: Table<Entry>;
   activities!: Table<Activity>;
   workouts!: Table<Workout>;
+  images!: Table<JournalImage>;
 
   constructor() {
     super('JournalDB');
@@ -42,6 +50,12 @@ class JournalDB extends Dexie {
       entries: '++id, &date',
       activities: '++id, entryId',
       workouts: '++id, entryId',
+    });
+    this.version(2).stores({
+      entries: '++id, &date',
+      activities: '++id, entryId',
+      workouts: '++id, entryId',
+      images: '++id, entryId',
     });
   }
 }

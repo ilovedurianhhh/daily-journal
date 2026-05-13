@@ -6,6 +6,7 @@ import MoodPicker from '../components/MoodPicker'
 import ActivitySection from '../components/ActivitySection'
 import WorkoutSection from '../components/WorkoutSection'
 import JournalSection from '../components/JournalSection'
+import ImageGallery from '../components/ImageGallery'
 
 function formatDate(date: Date): string {
   const y = date.getFullYear()
@@ -117,6 +118,7 @@ export default function TodayPage() {
           <ActivitySection entryId={entry.id!} />
           <WorkoutSection entryId={entry.id!} />
           <JournalSection entryId={entry.id!} initialText={entry.journal} />
+          <ImageGallery entryId={entry.id!} />
         </div>
       )}
     </div>
