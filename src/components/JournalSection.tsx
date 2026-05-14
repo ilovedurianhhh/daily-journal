@@ -112,7 +112,7 @@ export default function JournalSection({ entryId, initialText }: Props) {
     <>
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">日记</h3>
+          <h3 className="text-xs font-medium text-[#b8a99a] dark:text-slate-400 uppercase tracking-wider">日记</h3>
           <div className="flex items-center gap-2">
             {saved && <span className="text-xs text-green-500">已保存 ✓</span>}
             {text.trim() && (
@@ -136,12 +136,12 @@ export default function JournalSection({ entryId, initialText }: Props) {
           onChange={e => onChange(e.target.value)}
           placeholder="今天发生了什么？写点什么..."
           rows={5}
-          className="w-full bg-transparent text-[15px] text-[#3d3535] placeholder-[#d4cbc2] outline-none resize-none font-serif leading-relaxed"
+          className="w-full bg-transparent text-[15px] text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none resize-none font-serif leading-relaxed"
         />
 
         {/* Image grid */}
         {images.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-[#efe8e0]">
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-[#efe8e0] dark:border-slate-700">
             {images.map(img => (
               <button
                 key={img.id}
@@ -162,7 +162,7 @@ export default function JournalSection({ entryId, initialText }: Props) {
             <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
             <button
               onClick={() => fileRef.current?.click()}
-              className={`flex items-center gap-1.5 text-xs text-[#b8a99a] hover:text-[#c97d6b] transition-colors ${images.length > 0 ? 'mt-3' : 'mt-4'}`}
+              className={`flex items-center gap-1.5 text-xs text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:text-rose-400 transition-colors ${images.length > 0 ? 'mt-3' : 'mt-4'}`}
             >
               <Plus size={14} strokeWidth={2} />
               添加照片

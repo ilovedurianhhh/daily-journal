@@ -17,9 +17,9 @@ export default function MoodPicker({ value, onChange }: Props) {
   return (
     <div className="card p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">今日心情</h3>
+        <h3 className="text-xs font-medium text-[#b8a99a] dark:text-slate-400 uppercase tracking-wider">今日心情</h3>
         {currentMood && (
-          <span className="text-xs text-[#c97d6b] bg-[#f8ede8] px-2 py-0.5 rounded-full">
+          <span className="text-xs text-[#c97d6b] dark:text-rose-400 bg-[#f8ede8] dark:bg-rose-950 px-2 py-0.5 rounded-full">
             {currentMood.emoji} {currentMood.label}
           </span>
         )}
@@ -33,18 +33,18 @@ export default function MoodPicker({ value, onChange }: Props) {
               onClick={() => onChange(selected ? 0 : v)}
               className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-2xl transition-all min-w-0 flex-1 ${
                 selected
-                  ? 'bg-[#f8ede8] scale-110'
-                  : 'hover:bg-[#f5f0eb]'
+                  ? 'bg-[#f8ede8] dark:bg-rose-950 scale-110'
+                  : 'hover:bg-[#f5f0eb] dark:hover:bg-slate-800'
               }`}
             >
               <span className={`transition-all ${selected ? 'text-3xl' : 'text-2xl grayscale-[30%]'}`}>
                 {emoji}
               </span>
-              <span className={`text-xs font-medium ${selected ? 'text-[#c97d6b]' : 'text-[#b8a99a]'}`}>
+              <span className={`text-xs font-medium ${selected ? 'text-[#c97d6b] dark:text-rose-400' : 'text-[#b8a99a] dark:text-slate-400'}`}>
                 {label}
               </span>
               {selected && (
-                <span className="text-[10px] text-[#c97d6b]/70 -mt-0.5">{desc}</span>
+                <span className="text-[10px] text-[#c97d6b] dark:text-rose-400/70 -mt-0.5">{desc}</span>
               )}
             </button>
           )

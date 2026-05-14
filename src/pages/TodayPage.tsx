@@ -156,27 +156,27 @@ export default function TodayPage() {
   return (
     <div className="max-w-lg mx-auto px-5 pt-8">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => changeDay(-1)} className="p-2 -ml-2 text-[#b8a99a] hover:text-[#8b7e74] transition-colors">
+        <button onClick={() => changeDay(-1)} className="p-2 -ml-2 text-[#b8a99a] dark:text-slate-400 hover:text-[#8b7e74] transition-colors">
           <ChevronLeft size={22} />
         </button>
         <div className="text-center">
           {isToday && (
-            <p className="text-sm text-[#b8a99a] mb-0.5">
+            <p className="text-sm text-[#b8a99a] dark:text-slate-400 mb-0.5">
               {greeting.emoji} {greeting.text}
             </p>
           )}
-          <h1 className={`${isToday ? 'text-xl' : 'text-lg'} font-bold text-[#3d3535] tracking-tight font-serif`}>
+          <h1 className={`${isToday ? 'text-xl' : 'text-lg'} font-bold text-[#3d3535] dark:text-slate-100 tracking-tight font-serif`}>
             {formatDisplay(dateObj)}
           </h1>
           {isToday && streak > 0 && (
-            <p className="text-xs text-[#c97d6b] mt-1 font-medium">
+            <p className="text-xs text-[#c97d6b] dark:text-rose-400 mt-1 font-medium">
               🔥 连续记录 {streak} 天
             </p>
           )}
         </div>
         <button
           onClick={() => changeDay(1)}
-          className={`p-2 -mr-2 ${isToday ? 'invisible' : ''} text-[#b8a99a] hover:text-[#8b7e74] transition-colors`}
+          className={`p-2 -mr-2 ${isToday ? 'invisible' : ''} text-[#b8a99a] dark:text-slate-400 hover:text-[#8b7e74] transition-colors`}
         >
           <ChevronRight size={22} />
         </button>
@@ -192,8 +192,8 @@ export default function TodayPage() {
           {isToday && pastEntries.length > 0 && (
             <div className="card p-5">
               <div className="flex items-center gap-2 mb-3">
-                <Clock size={14} className="text-[#b8a99a]" />
-                <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">那年今日</h3>
+                <Clock size={14} className="text-[#b8a99a] dark:text-slate-400" />
+                <h3 className="text-xs font-medium text-[#b8a99a] dark:text-slate-400 uppercase tracking-wider">那年今日</h3>
               </div>
               <div className="space-y-3">
                 {pastEntries.map(pe => (
@@ -203,7 +203,7 @@ export default function TodayPage() {
                     className="w-full text-left block"
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-[#c97d6b]">{pe.year}年</span>
+                      <span className="text-xs font-medium text-[#c97d6b] dark:text-rose-400">{pe.year}年</span>
                       <span className="text-sm">{MOOD_EMOJIS[pe.mood] || ''}</span>
                     </div>
                     {pe.journal && (

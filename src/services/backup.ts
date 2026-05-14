@@ -81,12 +81,78 @@ export async function importAll(jsonStr: string) {
   }
 }
 
-export function downloadFile(content: string, filename: string) {
-  const blob = new Blob([content], { type: 'application/json' })
+export function downloadFile(content: string, filename: string, mime = 'application/json') {
+  const blob = new Blob([content], { type: mime })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+export async function exportMarkdown(): Promise<string> {
+  const entries = await db.entries.orderBy('date').toArray()
+  const expenses = await db.expenses.orderBy('date').toArray()
+  const exercises = await db.exercises.orderBy('date').toArray()
+
+  const expenseMap = new Map<string, typeof expenses>()
+  expenses.forEach(e => {
+    const arr = expenseMap.get(e.date) || []
+    arr.push(e)
+    expenseMap.set(e.date, arr)
+  })
+
+  const exMap = new Map<string, typeof exercises>()
+  exercises.forEach(e => {
+    const arr = exMap.get(e.date) || []
+    arr.push(e)
+    exMap.set(e.date, arr)
+  })
+
+  const MOODS: Record<number, string> = { 5: '😄 很好', 4: '🙂 不错', 3: '😐 一般', 2: '😔 不太好', 1: '😢 很差' }
+
+  const lines: string[] = ['# 我的生活记录\n']
+
+  entries.forEach(e => {
+    const d = new Date(e.date + 'T00:00:00')
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六']
+    lines.push(`## ${e.date} (周${weekdays[d.getDay()]})`)
+    lines.push('')
+    if (e.mood > 0) lines.push(`**心情：** ${MOODS[e.mood] || ''}`)
+    if (e.journal.trim()) {
+      lines.push('')
+      lines.push(e.journal.trim())
+    }
+    const dayExps = expenseMap.get(e.date)
+    if (dayExps && dayExps.length > 0) {
+      lines.push('')
+      lines.push('**消费：**')
+      const total = dayExps.reduce((s, x) => s + x.amount, 0)
+      dayExps.forEach(x => lines.push(`- ${x.category} ¥${x.amount} ${x.note || ''}`.trim()))
+      lines.push(`  合计：¥${total}`)
+    }
+    const dayExs = exMap.get(e.date)
+    if (dayExs && dayExs.length > 0) {
+      lines.push('')
+      lines.push('**健身：**')
+      dayExs.forEach(x => {
+        const typeLabel = x.type === 'strength' ? '🏋️ 力量' : '🏃 有氧'
+        lines.push(`- ${typeLabel} ${x.exerciseName}`)
+        if (x.type === 'strength') {
+          x.sets.forEach((s, i) => lines.push(`  组${i + 1}: ${s.weightKg || '-'}kg × ${s.reps || '-'}次`))
+        } else {
+          const s = x.sets[0]
+          if (s?.durationMinutes) lines.push(`  ${s.durationMinutes}分钟`)
+          if (s?.distanceKm) lines.push(`  ${s.distanceKm}km`)
+        }
+        if (x.notes) lines.push(`  备注：${x.notes}`)
+      })
+    }
+    lines.push('')
+    lines.push('---')
+    lines.push('')
+  })
+
+  return lines.join('\n')
 }

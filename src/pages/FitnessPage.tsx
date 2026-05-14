@@ -167,15 +167,15 @@ export default function FitnessPage() {
   return (
     <div className="max-w-lg mx-auto px-5 pt-8">
       <div className="flex items-center justify-between mb-6">
-        <button onClick={() => changeDay(-1)} className="p-2 -ml-2 text-[#b8a99a] hover:text-[#8b7e74] transition-colors">
+        <button onClick={() => changeDay(-1)} className="p-2 -ml-2 text-[#b8a99a] dark:text-slate-400 hover:text-[#8b7e74] transition-colors">
           <ChevronLeft size={22} />
         </button>
-        <h1 className={`${isToday ? 'text-xl' : 'text-lg'} font-bold text-[#3d3535] tracking-tight font-serif`}>
+        <h1 className={`${isToday ? 'text-xl' : 'text-lg'} font-bold text-[#3d3535] dark:text-slate-100 tracking-tight font-serif`}>
           {formatDisplay(dateObj)}
         </h1>
         <button
           onClick={() => changeDay(1)}
-          className={`p-2 -mr-2 ${isToday ? 'invisible' : ''} text-[#b8a99a] hover:text-[#8b7e74] transition-colors`}
+          className={`p-2 -mr-2 ${isToday ? 'invisible' : ''} text-[#b8a99a] dark:text-slate-400 hover:text-[#8b7e74] transition-colors`}
         >
           <ChevronRight size={22} />
         </button>
@@ -186,7 +186,7 @@ export default function FitnessPage() {
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="w-full card p-4 flex items-center justify-center gap-2 text-[#b8a99a] hover:text-[#c97d6b] hover:border-[#c97d6b]/30 transition-all"
+            className="w-full card p-4 flex items-center justify-center gap-2 text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:text-rose-400 hover:border-[#c97d6b]/30 transition-all"
           >
             <Plus size={18} strokeWidth={2} />
             <span className="text-sm">添加训练</span>
@@ -203,8 +203,8 @@ export default function FitnessPage() {
                   onClick={() => setType(key as 'strength' | 'cardio')}
                   className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     type === key
-                      ? 'bg-[#f8ede8] text-[#c97d6b]'
-                      : 'bg-[#faf8f5] text-[#8b7e74]'
+                      ? 'bg-[#f8ede8] text-[#c97d6b] dark:text-rose-400'
+                      : 'bg-[#faf8f5] dark:bg-slate-800 text-[#8b7e74]'
                   }`}
                 >
                   {emoji} {label}
@@ -217,28 +217,28 @@ export default function FitnessPage() {
               placeholder="动作名称"
               value={exerciseName}
               onChange={e => setExerciseName(e.target.value)}
-              className="w-full bg-[#faf8f5] rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30"
+              className="w-full bg-[#faf8f5] dark:bg-slate-800 rounded-lg px-3 py-2.5 text-sm text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none border border-[#efe8e0] dark:border-slate-700 focus:border-[#c97d6b]/30"
             />
 
             {type === 'strength' ? (
               <div className="space-y-2">
-                <div className="text-xs text-[#b8a99a] font-medium">每组重量与次数</div>
+                <div className="text-xs text-[#b8a99a] dark:text-slate-400 font-medium">每组重量与次数</div>
                 {sets.map((set, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <span className="text-xs text-[#b8a99a] w-6">#{i + 1}</span>
+                    <span className="text-xs text-[#b8a99a] dark:text-slate-400 w-6">#{i + 1}</span>
                     <input
                       type="number"
                       placeholder="重量 kg"
                       value={set.weightKg ?? ''}
                       onChange={e => updateSet(i, 'weightKg', e.target.value)}
-                      className="flex-1 bg-[#faf8f5] rounded-lg px-3 py-2 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30"
+                      className="flex-1 bg-[#faf8f5] dark:bg-slate-800 rounded-lg px-3 py-2 text-sm text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none border border-[#efe8e0] dark:border-slate-700 focus:border-[#c97d6b]/30"
                     />
                     <input
                       type="number"
                       placeholder="次数"
                       value={set.reps ?? ''}
                       onChange={e => updateSet(i, 'reps', e.target.value)}
-                      className="w-20 bg-[#faf8f5] rounded-lg px-3 py-2 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30"
+                      className="w-20 bg-[#faf8f5] dark:bg-slate-800 rounded-lg px-3 py-2 text-sm text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none border border-[#efe8e0] dark:border-slate-700 focus:border-[#c97d6b]/30"
                     />
                     {sets.length > 1 && (
                       <button onClick={() => removeSet(i)} className="p-1 text-[#d4cbc2] active:text-red-400 transition-colors">
@@ -249,7 +249,7 @@ export default function FitnessPage() {
                 ))}
                 <button
                   onClick={addSet}
-                  className="text-xs text-[#c97d6b] hover:text-[#b07d6b] font-medium"
+                  className="text-xs text-[#c97d6b] dark:text-rose-400 hover:text-[#b07d6b] font-medium"
                 >
                   + 添加一组
                 </button>
@@ -261,14 +261,14 @@ export default function FitnessPage() {
                   placeholder="时长（分钟）"
                   value={duration}
                   onChange={e => setDuration(e.target.value)}
-                  className="flex-1 bg-[#faf8f5] rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30"
+                  className="flex-1 bg-[#faf8f5] dark:bg-slate-800 rounded-lg px-3 py-2.5 text-sm text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none border border-[#efe8e0] dark:border-slate-700 focus:border-[#c97d6b]/30"
                 />
                 <input
                   type="number"
                   placeholder="距离（km）"
                   value={distance}
                   onChange={e => setDistance(e.target.value)}
-                  className="w-28 bg-[#faf8f5] rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30"
+                  className="w-28 bg-[#faf8f5] dark:bg-slate-800 rounded-lg px-3 py-2.5 text-sm text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none border border-[#efe8e0] dark:border-slate-700 focus:border-[#c97d6b]/30"
                 />
               </div>
             )}
@@ -278,7 +278,7 @@ export default function FitnessPage() {
               placeholder="备注（可选）"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full bg-[#faf8f5] rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30"
+              className="w-full bg-[#faf8f5] dark:bg-slate-800 rounded-lg px-3 py-2.5 text-sm text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none border border-[#efe8e0] dark:border-slate-700 focus:border-[#c97d6b]/30"
             />
 
             {/* Form image picker */}
@@ -286,7 +286,7 @@ export default function FitnessPage() {
               {formFiles.length > 0 && (
                 <div className="flex gap-2 mb-2 flex-wrap">
                   {formFiles.map((file, i) => (
-                    <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#f5f0eb]">
+                    <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#f5f0eb] dark:bg-slate-700">
                       <img
                         src={URL.createObjectURL(file)}
                         alt=""
@@ -306,7 +306,7 @@ export default function FitnessPage() {
               <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFormFiles} className="hidden" />
               <button
                 onClick={() => fileRef.current?.click()}
-                className="text-xs text-[#b8a99a] hover:text-[#c97d6b] transition-colors"
+                className="text-xs text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:text-rose-400 transition-colors"
               >
                 + 添加照片
               </button>
@@ -315,7 +315,7 @@ export default function FitnessPage() {
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setShowForm(false)}
-                className="flex-1 py-2.5 text-sm text-[#8b7e74] bg-[#faf8f5] rounded-lg font-medium"
+                className="flex-1 py-2.5 text-sm text-[#8b7e74] bg-[#faf8f5] dark:bg-slate-800 rounded-lg font-medium"
               >
                 取消
               </button>
@@ -338,8 +338,8 @@ export default function FitnessPage() {
             <div key={ex.id} className="card p-5">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">{tc.emoji}</span>
-                <span className="text-sm font-medium text-[#3d3535]">{ex.exerciseName}</span>
-                <span className="text-xs text-[#b8a99a] bg-[#f5f0eb] px-1.5 py-0.5 rounded">{tc.label}</span>
+                <span className="text-sm font-medium text-[#3d3535] dark:text-slate-100">{ex.exerciseName}</span>
+                <span className="text-xs text-[#b8a99a] dark:text-slate-400 bg-[#f5f0eb] dark:bg-slate-700 px-1.5 py-0.5 rounded">{tc.label}</span>
                 <button
                   onClick={() => ex.id != null && deleteExercise(ex.id)}
                   className="ml-auto text-[#d4cbc2] active:text-red-400 transition-colors p-1"
@@ -350,19 +350,19 @@ export default function FitnessPage() {
 
               {ex.type === 'strength' ? (
                 <div className="mb-2">
-                  <div className="grid grid-cols-3 gap-1 text-xs text-[#b8a99a] mb-1 px-1">
+                  <div className="grid grid-cols-3 gap-1 text-xs text-[#b8a99a] dark:text-slate-400 mb-1 px-1">
                     <span>组</span><span>重量</span><span>次数</span>
                   </div>
                   {ex.sets.map((set, i) => (
                     <div key={i} className="grid grid-cols-3 gap-1 text-sm px-1 py-0.5">
-                      <span className="text-[#b8a99a]">#{i + 1}</span>
-                      <span className="text-[#3d3535]">{set.weightKg ? `${set.weightKg}kg` : '-'}</span>
-                      <span className="text-[#3d3535]">{set.reps ?? '-'}</span>
+                      <span className="text-[#b8a99a] dark:text-slate-400">#{i + 1}</span>
+                      <span className="text-[#3d3535] dark:text-slate-100">{set.weightKg ? `${set.weightKg}kg` : '-'}</span>
+                      <span className="text-[#3d3535] dark:text-slate-100">{set.reps ?? '-'}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex gap-3 text-sm text-[#3d3535] mb-2">
+                <div className="flex gap-3 text-sm text-[#3d3535] dark:text-slate-100 mb-2">
                   {ex.sets[0]?.durationMinutes && (
                     <span>⏱️ {ex.sets[0].durationMinutes}分钟</span>
                   )}
@@ -377,12 +377,12 @@ export default function FitnessPage() {
               )}
 
               {imgData && imgData.imgs.length > 0 && (
-                <div className="flex gap-2 mt-2 pt-2 border-t border-[#efe8e0]">
+                <div className="flex gap-2 mt-2 pt-2 border-t border-[#efe8e0] dark:border-slate-700">
                   {imgData.imgs.map((img, i) => (
                     <button
                       key={img.id}
                       onClick={() => setViewingUrl(imgData.urls[i])}
-                      className="w-16 h-16 rounded-lg overflow-hidden bg-[#f5f0eb] flex-shrink-0"
+                      className="w-16 h-16 rounded-lg overflow-hidden bg-[#f5f0eb] dark:bg-slate-700 flex-shrink-0"
                     >
                       <img src={imgData.urls[i]} alt="" className="w-full h-full object-cover" loading="lazy" />
                     </button>

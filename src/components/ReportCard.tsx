@@ -103,20 +103,20 @@ export default function ReportCard() {
   return (
     <div className="card p-5">
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles size={16} className="text-[#c97d6b]" />
-        <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">AI 智能报告</h3>
+        <Sparkles size={16} className="text-[#c97d6b] dark:text-rose-400" />
+        <h3 className="text-xs font-medium text-[#b8a99a] dark:text-slate-400 uppercase tracking-wider">AI 智能报告</h3>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-[#faf8f5] rounded-lg p-1">
+      <div className="flex gap-1 mb-4 bg-[#faf8f5] dark:bg-slate-800 rounded-lg p-1">
         {(Object.keys(TYPE_LABELS) as ReportType[]).map(type => (
           <button
             key={type}
             onClick={() => setActiveTab(type)}
             className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${
               activeTab === type
-                ? 'bg-white text-[#c97d6b] shadow-sm'
-                : 'text-[#b8a99a] hover:text-[#8b7e74]'
+                ? 'bg-white text-[#c97d6b] dark:text-rose-400 shadow-sm'
+                : 'text-[#b8a99a] dark:text-slate-400 hover:text-[#8b7e74]'
             }`}
           >
             {TYPE_LABELS[type]}
@@ -129,13 +129,13 @@ export default function ReportCard() {
       {current ? (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs text-[#b8a99a]">
+            <span className="text-xs text-[#b8a99a] dark:text-slate-400">
               📅 {formatRange(range.start, range.end)}
             </span>
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="flex items-center gap-1 text-xs text-[#b8a99a] hover:text-[#c97d6b] transition-colors disabled:opacity-40"
+              className="flex items-center gap-1 text-xs text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:text-rose-400 transition-colors disabled:opacity-40"
             >
               <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
               重新生成
@@ -143,14 +143,14 @@ export default function ReportCard() {
           </div>
 
           {current.moodAvg > 0 && (
-            <div className="flex gap-4 mb-3 text-xs text-[#b8a99a]">
+            <div className="flex gap-4 mb-3 text-xs text-[#b8a99a] dark:text-slate-400">
               <span>心情均值 ⭐{current.moodAvg}</span>
               <span>消费 💰¥{current.expenseTotal}</span>
             </div>
           )}
 
-          <div className="bg-[#faf8f5] rounded-xl p-4">
-            <div className="text-sm text-[#3d3535] leading-relaxed font-serif whitespace-pre-wrap">
+          <div className="bg-[#faf8f5] dark:bg-slate-800 rounded-xl p-4">
+            <div className="text-sm text-[#3d3535] dark:text-slate-100 leading-relaxed font-serif whitespace-pre-wrap">
               {current.content}
             </div>
           </div>

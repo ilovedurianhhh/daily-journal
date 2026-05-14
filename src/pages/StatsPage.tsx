@@ -5,8 +5,8 @@ import {
 } from 'recharts'
 import { db, type Exercise } from '../db'
 import ReportCard from '../components/ReportCard'
-import { exportAll, importAll, downloadFile } from '../services/backup'
-import { Download, Upload } from 'lucide-react'
+import { exportAll, importAll, downloadFile, exportMarkdown } from '../services/backup'
+import { Download, Upload, Moon, Sun, FileText, Bell, BellOff } from 'lucide-react'
 
 function formatDate(date: Date): string {
   const y = date.getFullYear()
@@ -35,6 +35,47 @@ const PIE_COLORS = ['#c97d6b', '#6db37a', '#e8c76a', '#d4a76a', '#a89bb8', '#8b7
 
 export default function StatsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
+
+  const toggleDark = () => {
+    const next = !dark
+    setDark(next)
+    document.documentElement.classList.toggle('dark', next)
+    localStorage.setItem('darkMode', String(next))
+  }
+
+  const [notify, setNotify] = useState(() => localStorage.getItem('notifyEnabled') === 'true')
+
+  const toggleNotify = async () => {
+    if (!notify) {
+      if (!('Notification' in window)) { alert('浏览器不支持通知'); return }
+      const perm = await Notification.requestPermission()
+      if (perm !== 'granted') { alert('需要允许通知权限'); return }
+    }
+    const next = !notify
+    setNotify(next)
+    localStorage.setItem('notifyEnabled', String(next))
+    if (next) scheduleReminder()
+  }
+
+  const scheduleReminder = () => {
+    const now = new Date()
+    const target = new Date(now)
+    target.setHours(21, 0, 0, 0)
+    if (target <= now) target.setDate(target.getDate() + 1)
+    const ms = target.getTime() - now.getTime()
+    setTimeout(() => {
+      if (localStorage.getItem('notifyEnabled') === 'true') {
+        new Notification('📝 今天过得怎么样？', { body: '来记录今天的心情和故事吧 ✨', icon: '/icon-192.png' })
+        scheduleReminder()
+      }
+    }, ms)
+  }
+
+  useEffect(() => {
+    if (notify) scheduleReminder()
+  }, [])
+
   const [moodData, setMoodData] = useState<{ date: string; mood: number; label: string }[]>([])
   const [expenseCounts, setExpenseCounts] = useState<{ name: string; value: number; emoji: string }[]>([])
   const [expenseTotal, setExpenseTotal] = useState(0)
@@ -127,11 +168,49 @@ export default function StatsPage() {
             <Download size={18} />
           </button>
           <button
+            onClick={async () => {
+              try {
+                const md = await exportMarkdown()
+                downloadFile(md, `journal-${formatDate(new Date())}.md`, 'text/markdown')
+              } catch (e) { alert('导出失败: ' + e) }
+            }}
+            className="p-2 text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:hover:text-rose-400 transition-colors"
+            title="导出 Markdown"
+          >
+            <FileText size={18} />
+          </button>
+          <button
+            onClick={toggleNotify}
+            className={`p-2 transition-colors ${notify ? 'text-[#c97d6b] dark:text-rose-400' : 'text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:hover:text-rose-400'}`}
+            title={notify ? '已开启每日提醒' : '开启每日提醒'}
+          >
+            {notify ? <Bell size={18} /> : <BellOff size={18} />}
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const json = await exportAll()
+                downloadFile(json, `journal-backup-${formatDate(new Date())}.json`)
+              } catch (e) { alert('导出失败: ' + e) }
+            }}
+            className="p-2 text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:hover:text-rose-400 transition-colors"
+            title="导出备份"
+          >
+            <Download size={18} />
+          </button>
+          <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-[#b8a99a] hover:text-[#c97d6b] transition-colors"
+            className="p-2 text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:hover:text-rose-400 transition-colors"
             title="导入备份"
           >
             <Upload size={18} />
+          </button>
+          <button
+            onClick={toggleDark}
+            className="p-2 text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:hover:text-rose-400 transition-colors"
+            title={dark ? '浅色模式' : '深色模式'}
+          >
+            {dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           <input
             ref={fileInputRef}

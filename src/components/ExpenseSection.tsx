@@ -54,21 +54,21 @@ export default function ExpenseSection({ date }: Props) {
     <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">今日消费</h3>
+          <h3 className="text-xs font-medium text-[#b8a99a] dark:text-slate-400 uppercase tracking-wider">今日消费</h3>
           {total > 0 && (
-            <span className="text-sm font-bold text-[#c97d6b] font-serif">¥{total}</span>
+            <span className="text-sm font-bold text-[#c97d6b] dark:text-rose-400 font-serif">¥{total}</span>
           )}
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className={`p-1.5 rounded-lg transition-all ${showForm ? 'bg-[#f8ede8] text-[#c97d6b] rotate-45' : 'text-[#b8a99a] hover:text-[#8b7e74]'}`}
+          className={`p-1.5 rounded-lg transition-all ${showForm ? 'bg-[#f8ede8] text-[#c97d6b] dark:text-rose-400 rotate-45' : 'text-[#b8a99a] dark:text-slate-400 hover:text-[#8b7e74] dark:text-slate-300'}`}
         >
           <Plus size={18} strokeWidth={2} />
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-[#faf8f5] rounded-xl p-4 mb-3 space-y-3 border border-[#efe8e0]">
+        <div className="bg-[#faf8f5] dark:bg-slate-800 rounded-xl p-4 mb-3 space-y-3 border border-[#efe8e0] dark:border-slate-700">
           <div className="flex gap-1.5 flex-wrap">
             {entries.map(([key, { emoji, label }]) => (
               <button
@@ -76,8 +76,8 @@ export default function ExpenseSection({ date }: Props) {
                 onClick={() => setCategory(key)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                   category === key
-                    ? 'bg-white text-[#c97d6b] shadow-sm border border-[#efe8e0]'
-                    : 'text-[#8b7e74] hover:bg-white/60'
+                    ? 'bg-white text-[#c97d6b] dark:text-rose-400 shadow-sm border border-[#efe8e0] dark:border-slate-700'
+                    : 'text-[#8b7e74] dark:text-slate-300 hover:bg-white/60'
                 }`}
               >
                 {emoji} {label}
@@ -86,13 +86,13 @@ export default function ExpenseSection({ date }: Props) {
           </div>
           <div className="flex gap-2">
             <div className="flex-1 relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#b8a99a]">¥</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#b8a99a] dark:text-slate-400">¥</span>
               <input
                 type="number"
                 placeholder="金额"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="w-full bg-white rounded-lg pl-7 pr-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30 transition-colors"
+                className="w-full bg-white rounded-lg pl-7 pr-3 py-2.5 text-sm text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none border border-[#efe8e0] dark:border-slate-700 focus:border-[#c97d6b]/30 transition-colors"
               />
             </div>
             <button
@@ -108,7 +108,7 @@ export default function ExpenseSection({ date }: Props) {
             placeholder="备注（可选）"
             value={note}
             onChange={e => setNote(e.target.value)}
-            className="w-full bg-white rounded-lg px-3 py-2.5 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30 transition-colors"
+            className="w-full bg-white rounded-lg px-3 py-2.5 text-sm text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none border border-[#efe8e0] dark:border-slate-700 focus:border-[#c97d6b]/30 transition-colors"
           />
         </div>
       )}
@@ -123,10 +123,10 @@ export default function ExpenseSection({ date }: Props) {
           return (
             <div key={e.id} className="flex items-center gap-3 py-1.5 group">
               <span className="text-base">{cat.emoji}</span>
-              <span className="flex-1 text-sm text-[#3d3535]">
+              <span className="flex-1 text-sm text-[#3d3535] dark:text-slate-100">
                 {e.note || cat.label}
               </span>
-              <span className="text-sm font-medium text-[#c97d6b] font-serif">¥{e.amount}</span>
+              <span className="text-sm font-medium text-[#c97d6b] dark:text-rose-400 font-serif">¥{e.amount}</span>
               <button
                 onClick={() => deleteExpense(e.id!)}
                 className="text-[#d4cbc2] active:text-red-400 transition-colors p-1"
