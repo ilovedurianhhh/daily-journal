@@ -30,7 +30,7 @@ export default function MoodPicker({ value, onChange }: Props) {
           return (
             <button
               key={v}
-              onClick={() => onChange(v)}
+              onClick={() => onChange(selected ? 0 : v)}
               className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-2xl transition-all min-w-0 flex-1 ${
                 selected
                   ? 'bg-[#f8ede8] scale-110'

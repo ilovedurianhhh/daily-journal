@@ -113,9 +113,22 @@ export default function JournalSection({ entryId, initialText }: Props) {
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-medium text-[#b8a99a] uppercase tracking-wider">日记</h3>
-          <span className="text-xs text-[#b8a99a]">
-            {saved ? '已保存 ✓' : ''}
-          </span>
+          <div className="flex items-center gap-2">
+            {saved && <span className="text-xs text-green-500">已保存 ✓</span>}
+            {text.trim() && (
+              <button
+                onClick={() => {
+                  setText('')
+                  textRef.current = ''
+                  if (timerRef.current) clearTimeout(timerRef.current)
+                  db.entries.update(entryId, { journal: '', updatedAt: new Date() })
+                }}
+                className="text-xs text-[#d4cbc2] active:text-red-400 transition-colors"
+              >
+                清除
+              </button>
+            )}
+          </div>
         </div>
 
         <textarea

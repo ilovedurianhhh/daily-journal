@@ -129,7 +129,7 @@ export default function ExpenseSection({ date }: Props) {
               <span className="text-sm font-medium text-[#c97d6b] font-serif">¥{e.amount}</span>
               <button
                 onClick={() => deleteExpense(e.id!)}
-                className="opacity-0 group-hover:opacity-100 text-[#d4cbc2] hover:text-[#c97d6b] transition-all"
+                className="text-[#d4cbc2] active:text-red-400 transition-colors p-1"
               >
                 <Trash2 size={14} />
               </button>

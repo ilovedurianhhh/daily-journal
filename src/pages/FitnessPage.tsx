@@ -241,7 +241,7 @@ export default function FitnessPage() {
                       className="w-20 bg-[#faf8f5] rounded-lg px-3 py-2 text-sm text-[#3d3535] placeholder-[#d4cbc2] outline-none border border-[#efe8e0] focus:border-[#c97d6b]/30"
                     />
                     {sets.length > 1 && (
-                      <button onClick={() => removeSet(i)} className="p-1 text-[#d4cbc2] hover:text-[#c97d6b]">
+                      <button onClick={() => removeSet(i)} className="p-1 text-[#d4cbc2] active:text-red-400 transition-colors">
                         <Trash2 size={14} />
                       </button>
                     )}
@@ -342,7 +342,7 @@ export default function FitnessPage() {
                 <span className="text-xs text-[#b8a99a] bg-[#f5f0eb] px-1.5 py-0.5 rounded">{tc.label}</span>
                 <button
                   onClick={() => ex.id != null && deleteExercise(ex.id)}
-                  className="ml-auto text-[#d4cbc2] hover:text-[#c97d6b] transition-colors"
+                  className="ml-auto text-[#d4cbc2] active:text-red-400 transition-colors p-1"
                 >
                   <Trash2 size={14} />
                 </button>
