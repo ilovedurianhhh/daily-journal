@@ -94,6 +94,20 @@ class JournalDB extends Dexie {
 
   constructor() {
     super('JournalDB');
+    // Version 1: initial tables
+    this.version(1).stores({
+      entries: '++id, &date',
+      activities: '++id, entryId',
+      workouts: '++id, entryId',
+    });
+    // Version 2: add journal image support
+    this.version(2).stores({
+      entries: '++id, &date',
+      activities: '++id, entryId',
+      workouts: '++id, entryId',
+      images: '++id, entryId',
+    });
+    // Version 3: add fitness + expense tables
     this.version(3).stores({
       entries: '++id, &date',
       activities: '++id, entryId',
@@ -103,6 +117,7 @@ class JournalDB extends Dexie {
       exerciseImages: '++id, exerciseId',
       expenses: '++id, date',
     });
+    // Version 4: add AI summaries
     this.version(4).stores({
       entries: '++id, &date',
       activities: '++id, entryId',

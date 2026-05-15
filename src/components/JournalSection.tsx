@@ -40,9 +40,13 @@ export default function JournalSection({ entryId, initialText }: Props) {
 
   const flushSave = useCallback(async (value: string) => {
     if (timerRef.current) clearTimeout(timerRef.current)
-    await db.entries.update(entryId, { journal: value, updatedAt: new Date() })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 1500)
+    try {
+      await db.entries.update(entryId, { journal: value, updatedAt: new Date() })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 1500)
+    } catch (err) {
+      console.error('Save failed:', err)
+    }
   }, [entryId])
 
   const onChange = (value: string) => {

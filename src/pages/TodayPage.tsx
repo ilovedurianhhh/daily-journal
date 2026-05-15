@@ -66,21 +66,28 @@ export default function TodayPage() {
   const [entry, setEntry] = useState<Entry | null>(null)
   const [streak, setStreak] = useState(0)
   const [pastEntries, setPastEntries] = useState<PastEntry[]>([])
+  const [dbError, setDbError] = useState<string | null>(null)
   const isToday = currentDate === today
 
   const loadEntry = useCallback(async (date: string) => {
-    let e = await db.entries.where('date').equals(date).first()
-    if (!e) {
-      const id = await db.entries.add({
-        date,
-        mood: 0,
-        journal: '',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      e = await db.entries.get(id)
+    try {
+      let e = await db.entries.where('date').equals(date).first()
+      if (!e) {
+        const id = await db.entries.add({
+          date,
+          mood: 0,
+          journal: '',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        e = await db.entries.get(id)
+      }
+      setEntry(e || null)
+      setDbError(null)
+    } catch (err) {
+      console.error('Failed to load entry:', err)
+      setDbError('数据库加载失败，请尝试刷新页面或重新打开 App')
     }
-    setEntry(e || null)
   }, [])
 
   // Load streak
@@ -182,7 +189,16 @@ export default function TodayPage() {
         </button>
       </div>
 
-      {entry && (
+      {dbError && (
+        <div className="card p-5 text-center">
+          <p className="text-sm text-red-400 mb-3">{dbError}</p>
+          <button onClick={() => window.location.reload()} className="text-xs text-[#c97d6b] underline">
+            点此刷新
+          </button>
+        </div>
+      )}
+
+      {entry && !dbError && (
         <div className="space-y-4">
           <MoodPicker value={entry.mood} onChange={updateMood} />
           <JournalSection entryId={entry.id!} initialText={entry.journal} />
