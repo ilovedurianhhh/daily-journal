@@ -8,7 +8,7 @@ import FitnessPage from './pages/FitnessPage'
 import HistoryPage from './pages/HistoryPage'
 import StatsPage from './pages/StatsPage'
 
-const APP_VERSION = '1.5'
+const APP_VERSION = '1.6'
 
 function useDarkMode() {
   useEffect(() => {
