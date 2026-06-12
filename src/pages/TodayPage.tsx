@@ -67,10 +67,12 @@ export default function TodayPage() {
   const [streak, setStreak] = useState(0)
   const [pastEntries, setPastEntries] = useState<PastEntry[]>([])
   const [dbError, setDbError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const isToday = currentDate === today
 
   const loadEntry = useCallback(async (date: string) => {
     try {
+      setLoading(true)
       let e = await db.entries.where('date').equals(date).first()
       if (!e) {
         const id = await db.entries.add({
@@ -84,6 +86,7 @@ export default function TodayPage() {
       }
       setEntry(e || null)
       setDbError(null)
+      setLoading(false)
     } catch (err) {
       console.error('Failed to load entry:', err)
       setDbError('数据库加载失败，请尝试刷新页面或重新打开 App')
@@ -198,7 +201,11 @@ export default function TodayPage() {
         </div>
       )}
 
-      {entry && !dbError && (
+      {loading && (
+        <div className="text-center py-12 text-sm text-[#b8a99a] dark:text-slate-400 font-serif italic">加载中...</div>
+      )}
+
+      {entry && !dbError && !loading && (
         <div className="space-y-4">
           <MoodPicker value={entry.mood} onChange={updateMood} />
           <JournalSection entryId={entry.id!} initialText={entry.journal} />

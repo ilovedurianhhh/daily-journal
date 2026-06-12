@@ -319,6 +319,55 @@ export default function StatsPage() {
         </div>
 
         <ReportCard />
+
+        {/* Data management */}
+        <div className="card p-5">
+          <h3 className="text-xs font-medium text-[#b8a99a] dark:text-slate-400 uppercase tracking-wider mb-4">数据管理</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={async () => {
+                try {
+                  const md = await exportMarkdown()
+                  downloadFile(md, `journal-${formatDate(new Date())}.md`, 'text/markdown')
+                } catch (e) { alert('导出失败: ' + e) }
+              }}
+              className="flex items-center justify-center gap-2 py-3 bg-[#faf8f5] dark:bg-slate-800 rounded-xl text-sm font-medium text-[#3d3535] dark:text-slate-100 active:bg-[#f8ede8] dark:active:bg-rose-950 transition-colors"
+            >
+              <FileText size={16} />
+              导出 Markdown
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const json = await exportAll()
+                  downloadFile(json, `journal-backup-${formatDate(new Date())}.json`)
+                } catch (e) { alert('导出失败: ' + e) }
+              }}
+              className="flex items-center justify-center gap-2 py-3 bg-[#faf8f5] dark:bg-slate-800 rounded-xl text-sm font-medium text-[#3d3535] dark:text-slate-100 active:bg-[#f8ede8] dark:active:bg-rose-950 transition-colors"
+            >
+              <Download size={16} />
+              导出 JSON 备份
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center justify-center gap-2 py-3 bg-[#faf8f5] dark:bg-slate-800 rounded-xl text-sm font-medium text-[#3d3535] dark:text-slate-100 active:bg-[#f8ede8] dark:active:bg-rose-950 transition-colors"
+            >
+              <Upload size={16} />
+              导入 JSON 恢复
+            </button>
+            <button
+              onClick={toggleNotify}
+              className={`flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-colors ${
+                notify
+                  ? 'bg-[#f8ede8] dark:bg-rose-950 text-[#c97d6b] dark:text-rose-400'
+                  : 'bg-[#faf8f5] dark:bg-slate-800 text-[#3d3535] dark:text-slate-100 active:bg-[#f8ede8] dark:active:bg-rose-950'
+              }`}
+            >
+              {notify ? <Bell size={16} /> : <BellOff size={16} />}
+              {notify ? '提醒已开启' : '每日提醒'}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

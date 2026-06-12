@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Plus, X } from 'lucide-react'
 import { db, type JournalImage } from '../db'
 
@@ -15,18 +15,40 @@ export default function JournalSection({ entryId, initialText }: Props) {
   const [images, setImages] = useState<JournalImage[]>([])
   const [urls, setUrls] = useState<Map<number, string>>(new Map())
   const [viewingUrl, setViewingUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // Refs that always point to current values — avoids stale closure bugs
+  const entryIdRef = useRef(entryId)
+  const textRef = useRef(initialText)
+  const initialTextRef = useRef(initialText)
+
+  // Keep refs in sync with props
+  entryIdRef.current = entryId
+  useEffect(() => { initialTextRef.current = initialText }, [initialText])
+  // textRef is updated in onChange
+
+  // When entry changes, immediately flush pending save to OLD entry, then load new
   useEffect(() => {
+    // Flush any pending text to the PREVIOUS entryId before switching
+    if (textRef.current !== initialTextRef.current) {
+      db.entries.update(entryIdRef.current, { journal: textRef.current, updatedAt: new Date() })
+    }
+    // Clear timer from previous entry
+    if (timerRef.current) clearTimeout(timerRef.current)
+    // Reset to new entry's text
     setText(initialText)
+    textRef.current = initialText
+    setLoading(false)
   }, [entryId, initialText])
 
   // Load images
   useEffect(() => {
-    db.images.where('entryId').equals(entryId).toArray().then(setImages)
+    db.images.where('entryId').equals(entryId).toArray().then(setImages).catch(() => {})
   }, [entryId])
 
+  // Create/revoke object URLs
   useEffect(() => {
     const newUrls = new Map<number, string>()
     images.forEach(img => {
@@ -36,77 +58,63 @@ export default function JournalSection({ entryId, initialText }: Props) {
     return () => { newUrls.forEach(url => URL.revokeObjectURL(url)) }
   }, [images])
 
-  const textRef = useRef(initialText)
-
-  const flushSave = useCallback(async (value: string) => {
-    if (timerRef.current) clearTimeout(timerRef.current)
+  const doSave = async (value: string, targetEntryId: number) => {
     try {
-      await db.entries.update(entryId, { journal: value, updatedAt: new Date() })
+      await db.entries.update(targetEntryId, { journal: value, updatedAt: new Date() })
       setSaved(true)
       setTimeout(() => setSaved(false), 1500)
     } catch (err) {
       console.error('Save failed:', err)
     }
-  }, [entryId])
+  }
 
   const onChange = (value: string) => {
     setText(value)
     textRef.current = value
     if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => flushSave(value), 800)
+    // Capture entryId at time of typing — ensures save targets the correct entry
+    const targetId = entryIdRef.current
+    timerRef.current = setTimeout(() => doSave(value, targetId), 800)
   }
 
-  // Save on unmount (navigation away)
+  // Save on unmount / page hide — use refs to avoid stale closure
   useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-        if (textRef.current !== initialText) {
-          // Synchronous save on unmount isn't possible with IndexedDB
-          // but we can fire-and-forget
-          db.entries.update(entryId, { journal: textRef.current, updatedAt: new Date() })
-        }
-      }
-    }
-  }, [entryId, initialText])
-
-  // Save on page close / tab switch
-  useEffect(() => {
-    const onBeforeUnload = () => {
-      if (textRef.current !== initialText) {
-        // Use sendBeacon-like approach — IndexedDB writes are async but
-        // the browser will wait for pending transactions on page hide
-        db.entries.update(entryId, { journal: textRef.current, updatedAt: new Date() })
+    const flushNow = () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+      if (textRef.current !== initialTextRef.current) {
+        db.entries.update(entryIdRef.current, { journal: textRef.current, updatedAt: new Date() })
       }
     }
     const onVisibility = () => {
-      if (document.hidden && textRef.current !== initialText) {
-        if (timerRef.current) clearTimeout(timerRef.current)
-        db.entries.update(entryId, { journal: textRef.current, updatedAt: new Date() })
-      }
+      if (document.hidden) flushNow()
     }
-    window.addEventListener('beforeunload', onBeforeUnload)
+    window.addEventListener('beforeunload', flushNow)
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload)
+      flushNow() // also flush on cleanup (entry switch)
+      window.removeEventListener('beforeunload', flushNow)
       document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [entryId, initialText])
+  }, [entryId]) // re-attach when entryId changes so flushNow captures correct entryIdRef
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const resized = await resizeImage(file)
-    await db.images.add({ entryId, data: resized, createdAt: new Date() })
-    const imgs = await db.images.where('entryId').equals(entryId).toArray()
-    setImages(imgs)
+    try {
+      const resized = await resizeImage(file)
+      await db.images.add({ entryId, data: resized, createdAt: new Date() })
+      const imgs = await db.images.where('entryId').equals(entryId).toArray()
+      setImages(imgs)
+    } catch (err) { console.error('Image upload failed:', err) }
     if (fileRef.current) fileRef.current.value = ''
   }
 
   const deleteImage = async (id: number) => {
     const url = urls.get(id)
     if (url) URL.revokeObjectURL(url)
-    await db.images.delete(id)
+    try {
+      await db.images.delete(id)
+    } catch (err) { console.error('Delete failed:', err) }
     setViewingUrl(null)
     const imgs = await db.images.where('entryId').equals(entryId).toArray()
     setImages(imgs)
@@ -125,9 +133,9 @@ export default function JournalSection({ entryId, initialText }: Props) {
                   setText('')
                   textRef.current = ''
                   if (timerRef.current) clearTimeout(timerRef.current)
-                  db.entries.update(entryId, { journal: '', updatedAt: new Date() })
+                  doSave('', entryId)
                 }}
-                className="text-xs text-[#d4cbc2] active:text-red-400 transition-colors"
+                className="text-xs text-[#d4cbc2] dark:text-slate-500 active:text-red-400 transition-colors"
               >
                 清除
               </button>
@@ -135,22 +143,25 @@ export default function JournalSection({ entryId, initialText }: Props) {
           </div>
         </div>
 
-        <textarea
-          value={text}
-          onChange={e => onChange(e.target.value)}
-          placeholder="今天发生了什么？写点什么..."
-          rows={5}
-          className="w-full bg-transparent text-[15px] text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] outline-none resize-none font-serif leading-relaxed"
-        />
+        {loading ? (
+          <div className="py-8 text-center text-sm text-[#b8a99a] dark:text-slate-400 font-serif italic">加载中...</div>
+        ) : (
+          <textarea
+            value={text}
+            onChange={e => onChange(e.target.value)}
+            placeholder="今天发生了什么？写点什么..."
+            rows={5}
+            className="w-full bg-transparent text-[15px] text-[#3d3535] dark:text-slate-100 placeholder-[#d4cbc2] dark:placeholder-slate-600 outline-none resize-none font-serif leading-relaxed"
+          />
+        )}
 
-        {/* Image grid */}
         {images.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-[#efe8e0] dark:border-slate-700">
             {images.map(img => (
               <button
                 key={img.id}
                 onClick={() => img.id != null && urls.get(img.id) && setViewingUrl(urls.get(img.id)!)}
-                className="aspect-square rounded-lg overflow-hidden bg-[#f5f0eb]"
+                className="aspect-square rounded-lg overflow-hidden bg-[#f5f0eb] dark:bg-slate-700"
               >
                 {img.id != null && urls.get(img.id) && (
                   <img src={urls.get(img.id)!} alt="" className="w-full h-full object-cover" loading="lazy" />
@@ -160,13 +171,12 @@ export default function JournalSection({ entryId, initialText }: Props) {
           </div>
         )}
 
-        {/* Add photo button */}
         {images.length < MAX_IMAGES && (
           <>
             <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
             <button
               onClick={() => fileRef.current?.click()}
-              className={`flex items-center gap-1.5 text-xs text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:text-rose-400 transition-colors ${images.length > 0 ? 'mt-3' : 'mt-4'}`}
+              className={`flex items-center gap-1.5 text-xs text-[#b8a99a] dark:text-slate-400 hover:text-[#c97d6b] dark:hover:text-rose-400 transition-colors ${images.length > 0 ? 'mt-3' : 'mt-4'}`}
             >
               <Plus size={14} strokeWidth={2} />
               添加照片
@@ -175,13 +185,9 @@ export default function JournalSection({ entryId, initialText }: Props) {
         )}
       </div>
 
-      {/* Fullscreen image viewer */}
       {viewingUrl && (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center" onClick={() => setViewingUrl(null)}>
-          <button
-            onClick={() => setViewingUrl(null)}
-            className="absolute top-4 right-4 p-2 text-white/80 hover:text-white z-10"
-          >
+          <button onClick={() => setViewingUrl(null)} className="absolute top-4 right-4 p-2 text-white/80 hover:text-white z-10">
             <X size={24} />
           </button>
           <button
