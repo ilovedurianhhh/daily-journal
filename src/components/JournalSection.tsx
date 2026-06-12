@@ -218,12 +218,13 @@ async function resizeImage(file: File): Promise<Blob> {
       const canvas = document.createElement('canvas')
       canvas.width = width; canvas.height = height
       canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      URL.revokeObjectURL(img.src)
       canvas.toBlob(blob => {
         if (blob) resolve(blob)
         else reject(new Error('Failed to resize'))
       }, file.type || 'image/jpeg', 0.85)
     }
-    img.onerror = () => reject(new Error('Failed to load image'))
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error('Failed to load image')) }
     img.src = URL.createObjectURL(file)
   })
 }

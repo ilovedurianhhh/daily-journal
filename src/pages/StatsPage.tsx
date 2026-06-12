@@ -58,23 +58,28 @@ export default function StatsPage() {
     if (next) scheduleReminder()
   }
 
+  const notifyTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
   const scheduleReminder = () => {
+    if (notifyTimerRef.current) clearTimeout(notifyTimerRef.current)
+    if (!localStorage.getItem('notifyEnabled')) return
     const now = new Date()
     const target = new Date(now)
     target.setHours(21, 0, 0, 0)
     if (target <= now) target.setDate(target.getDate() + 1)
-    const ms = target.getTime() - now.getTime()
-    setTimeout(() => {
+    notifyTimerRef.current = setTimeout(() => {
       if (localStorage.getItem('notifyEnabled') === 'true') {
         new Notification('📝 今天过得怎么样？', { body: '来记录今天的心情和故事吧 ✨', icon: '/icon-192.png' })
         scheduleReminder()
       }
-    }, ms)
+    }, target.getTime() - now.getTime())
   }
 
   useEffect(() => {
     if (notify) scheduleReminder()
-  }, [])
+    else if (notifyTimerRef.current) clearTimeout(notifyTimerRef.current)
+    return () => { if (notifyTimerRef.current) clearTimeout(notifyTimerRef.current) }
+  }, [notify])
 
   const [moodData, setMoodData] = useState<{ date: string; mood: number; label: string }[]>([])
   const [expenseCounts, setExpenseCounts] = useState<{ name: string; value: number; emoji: string }[]>([])

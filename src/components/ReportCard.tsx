@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { RefreshCw, Sparkles } from 'lucide-react'
 import { db, type Summary } from '../db'
 import { generateReport, getReportRanges, isReportDay } from '../services/llm'
@@ -18,7 +18,7 @@ export default function ReportCard() {
   })
   const [loading, setLoading] = useState(false)
 
-  const ranges = getReportRanges()
+  const ranges = useMemo(() => getReportRanges(), [])
 
   const loadSummaries = useCallback(async () => {
     const all = await db.summaries.toArray()

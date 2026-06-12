@@ -47,6 +47,7 @@ export default function FitnessPage() {
   const [viewingUrl, setViewingUrl] = useState<string | null>(null)
 
   const fileRef = useRef<HTMLInputElement>(null)
+  const imageMapRef = useRef<Map<number, { imgs: ExerciseImage[]; urls: string[] }>>(new Map())
   const isToday = currentDate === today
 
   const loadExercises = useCallback(async (date: string) => {
@@ -54,7 +55,8 @@ export default function FitnessPage() {
     exs.sort((a, b) => (a.createdAt?.getTime?.() ?? 0) - (b.createdAt?.getTime?.() ?? 0))
     setExercises(exs)
 
-    // Load images for all exercises
+    // Revoke old URLs before creating new ones
+    imageMapRef.current.forEach(v => v.urls.forEach(URL.revokeObjectURL))
     const map = new Map<number, { imgs: ExerciseImage[]; urls: string[] }>()
     for (const ex of exs) {
       if (ex.id == null) continue
@@ -62,9 +64,8 @@ export default function FitnessPage() {
       const urls = imgs.map(i => URL.createObjectURL(i.data))
       map.set(ex.id, { imgs, urls })
     }
-    // Revoke old URLs
-    imageMap.forEach(v => v.urls.forEach(URL.revokeObjectURL))
-    setImageMap(map)
+    imageMapRef.current = map
+    setImageMap(new Map(map))
   }, [])
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function FitnessPage() {
   useEffect(() => {
     loadExercises(currentDate)
     return () => {
-      imageMap.forEach(v => v.urls.forEach(URL.revokeObjectURL))
+      imageMapRef.current.forEach(v => v.urls.forEach(URL.revokeObjectURL))
     }
   }, [currentDate, loadExercises])
 
@@ -150,9 +151,10 @@ export default function FitnessPage() {
   }
 
   const deleteExercise = async (id: number) => {
-    const entry = imageMap.get(id)
+    const entry = imageMapRef.current.get(id)
     if (entry) {
       entry.urls.forEach(URL.revokeObjectURL)
+      imageMapRef.current.delete(id)
       for (const img of entry.imgs) {
         if (img.id != null) await db.exerciseImages.delete(img.id)
       }
@@ -430,12 +432,13 @@ async function resizeImage(file: File): Promise<Blob> {
       const canvas = document.createElement('canvas')
       canvas.width = width; canvas.height = height
       canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      URL.revokeObjectURL(img.src)
       canvas.toBlob(blob => {
         if (blob) resolve(blob)
         else reject(new Error('Failed to resize'))
       }, file.type || 'image/jpeg', 0.85)
     }
-    img.onerror = () => reject(new Error('Failed to load image'))
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error('Failed to load image')) }
     img.src = URL.createObjectURL(file)
   })
 }
