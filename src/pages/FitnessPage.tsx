@@ -118,36 +118,46 @@ export default function FitnessPage() {
 
   const addExercise = async () => {
     if (!exerciseName.trim()) return
-    if (type === 'strength') {
-      const validSets = sets.filter(s => s.weightKg || s.reps)
-      if (validSets.length === 0) return
-      const id = await db.exercises.add({
-        date: currentDate,
-        type: 'strength',
-        exerciseName: exerciseName.trim(),
-        sets: validSets,
-        notes: notes.trim(),
-        createdAt: new Date(),
-      })
-      await saveExerciseImages(id, formFiles)
-    } else {
-      await db.exercises.add({
-        date: currentDate,
-        type: 'cardio',
-        exerciseName: exerciseName.trim(),
-        sets: [{
-          durationMinutes: duration ? Number(duration) : undefined,
-          distanceKm: distance ? Number(distance) : undefined,
-        }],
-        notes: notes.trim(),
-        createdAt: new Date(),
-      })
-    }
+    try {
+      if (type === 'strength') {
+        const validSets = sets.filter(s => s.weightKg || s.reps)
+        if (validSets.length === 0) return
+        const id = await db.exercises.add({
+          date: currentDate,
+          type: 'strength',
+          exerciseName: exerciseName.trim(),
+          sets: validSets,
+          notes: notes.trim(),
+          createdAt: new Date(),
+        })
+        try {
+          await saveExerciseImages(id, formFiles)
+        } catch (imgErr) {
+          console.error('Image save failed, rolling back exercise:', imgErr)
+          await db.exercises.delete(id)
+          throw imgErr
+        }
+      } else {
+        await db.exercises.add({
+          date: currentDate,
+          type: 'cardio',
+          exerciseName: exerciseName.trim(),
+          sets: [{
+            durationMinutes: duration ? Number(duration) : undefined,
+            distanceKm: distance ? Number(distance) : undefined,
+          }],
+          notes: notes.trim(),
+          createdAt: new Date(),
+        })
+      }
 
-    // Reset form
-    setExerciseName(''); setSets([{ weightKg: undefined, reps: undefined }])
-    setDuration(''); setDistance(''); setNotes(''); setFormFiles([]); setShowForm(false)
-    await loadExercises(currentDate)
+      // Reset form
+      setExerciseName(''); setSets([{ weightKg: undefined, reps: undefined }])
+      setDuration(''); setDistance(''); setNotes(''); setFormFiles([]); setShowForm(false)
+      await loadExercises(currentDate)
+    } catch (err) {
+      console.error('addExercise failed:', err)
+    }
   }
 
   const deleteExercise = async (id: number) => {

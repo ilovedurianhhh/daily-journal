@@ -86,10 +86,11 @@ export default function TodayPage() {
       }
       setEntry(e || null)
       setDbError(null)
-      setLoading(false)
     } catch (err) {
       console.error('Failed to load entry:', err)
       setDbError('数据库加载失败，请尝试刷新页面或重新打开 App')
+    } finally {
+      setLoading(false)
     }
   }, [])
 

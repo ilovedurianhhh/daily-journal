@@ -50,10 +50,30 @@ export async function exportAll(): Promise<string> {
 }
 
 export async function importAll(jsonStr: string) {
-  const data = JSON.parse(jsonStr)
-  if (!data.version || !data.entries) throw new Error('无效的备份文件')
+  let data: any
+  try { data = JSON.parse(jsonStr) }
+  catch { throw new Error('无效的备份文件：JSON 解析失败') }
+  if (!data.version || !data.entries) throw new Error('无效的备份文件：缺少必要字段')
 
-  // Clear all existing data
+  // Validate all data before clearing anything
+  const entriesToImport = data.entries as any[]
+  if (!Array.isArray(entriesToImport) || entriesToImport.length === 0) throw new Error('备份文件中没有数据')
+
+  // Process images first — if blobs are invalid, fail before clearing
+  const imageEntries: { entryId: number; data: Blob; createdAt: Date }[] = []
+  if (data.images) {
+    for (const img of data.images) {
+      imageEntries.push({ entryId: img.entryId, data: base64ToBlob(img.data), createdAt: img.createdAt })
+    }
+  }
+  const exImageEntries: { exerciseId: number; data: Blob; createdAt: Date }[] = []
+  if (data.exerciseImages) {
+    for (const img of data.exerciseImages) {
+      exImageEntries.push({ exerciseId: img.exerciseId, data: base64ToBlob(img.data), createdAt: img.createdAt })
+    }
+  }
+
+  // Now clear and import
   await db.entries.clear()
   await db.expenses.clear()
   await db.exercises.clear()
@@ -61,24 +81,12 @@ export async function importAll(jsonStr: string) {
   await db.images.clear()
   await db.exerciseImages.clear()
 
-  await db.entries.bulkAdd(data.entries)
+  await db.entries.bulkAdd(entriesToImport)
   if (data.expenses) await db.expenses.bulkAdd(data.expenses)
   if (data.exercises) await db.exercises.bulkAdd(data.exercises)
   if (data.summaries) await db.summaries.bulkAdd(data.summaries)
-
-  if (data.images) {
-    for (const img of data.images) {
-      const blob = base64ToBlob(img.data)
-      await db.images.add({ entryId: img.entryId, data: blob, createdAt: img.createdAt })
-    }
-  }
-
-  if (data.exerciseImages) {
-    for (const img of data.exerciseImages) {
-      const blob = base64ToBlob(img.data)
-      await db.exerciseImages.add({ exerciseId: img.exerciseId, data: blob, createdAt: img.createdAt })
-    }
-  }
+  for (const img of imageEntries) await db.images.add(img)
+  for (const img of exImageEntries) await db.exerciseImages.add(img)
 }
 
 export function downloadFile(content: string, filename: string, mime = 'application/json') {

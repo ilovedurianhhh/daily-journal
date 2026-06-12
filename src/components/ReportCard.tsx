@@ -70,11 +70,12 @@ export default function ReportCard() {
   const handleGenerate = async () => {
     setLoading(true)
     try {
-      // Delete existing summary for this period if any
+      const result = await generateReport(activeTab, ranges[activeTab].start, ranges[activeTab].end)
+
+      // Only delete old AFTER new data is generated
       const existing = summaries[activeTab]
       if (existing?.id) await db.summaries.delete(existing.id)
 
-      const result = await generateReport(activeTab, ranges[activeTab].start, ranges[activeTab].end)
       await db.summaries.add({
         type: activeTab,
         periodStart: ranges[activeTab].start,

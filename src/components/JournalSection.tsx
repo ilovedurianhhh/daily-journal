@@ -21,19 +21,22 @@ export default function JournalSection({ entryId, initialText }: Props) {
 
   // Refs that always point to current values — avoids stale closure bugs
   const entryIdRef = useRef(entryId)
+  const prevEntryIdRef = useRef(entryId)
   const textRef = useRef(initialText)
   const initialTextRef = useRef(initialText)
 
-  // Keep refs in sync with props
-  entryIdRef.current = entryId
+  // Capture previous entryId before updating current
+  useEffect(() => {
+    prevEntryIdRef.current = entryIdRef.current
+    entryIdRef.current = entryId
+  }, [entryId])
   useEffect(() => { initialTextRef.current = initialText }, [initialText])
   // textRef is updated in onChange
 
-  // When entry changes, immediately flush pending save to OLD entry, then load new
+  // When entry changes, immediately flush pending save to the PREVIOUS entry
   useEffect(() => {
-    // Flush any pending text to the PREVIOUS entryId before switching
     if (textRef.current !== initialTextRef.current) {
-      db.entries.update(entryIdRef.current, { journal: textRef.current, updatedAt: new Date() })
+      db.entries.update(prevEntryIdRef.current, { journal: textRef.current, updatedAt: new Date() }).catch(() => {})
     }
     // Clear timer from previous entry
     if (timerRef.current) clearTimeout(timerRef.current)
